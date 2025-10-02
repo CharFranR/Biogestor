@@ -28,16 +28,16 @@ const BotonStyled = styled.button<{
   opacity: ${props => props.$disabled ? 0.6 : 1};
   box-sizing: border-box; /* 
 
-  &:hover {
-    ${props => !props.$disabled && `
-      opacity: 0.9;
-      transform: translateY(-1px);
-    `}
+   /* Efecto hover solo cuando no está deshabilitado */
+  &:hover:not(:disabled) {
+    color: #01663d; 
+    background-color: #dee2e6; 
+    transform: translateX(5px);
   }
 
-  &:focus {
-    outline: 2px solid ${props => props.$color}33;
-    outline-offset: 2px;
+  /* Estilo para cuando está deshabilitado */
+  &:disabled {
+    cursor: not-allowed;
   }
 `
 
@@ -86,13 +86,21 @@ export const Boton: React.FC<PropiedadesBoton> = ({
     content,
     onClick,
 }) => {
+
+  const manejarClick = () => {
+        if (onClick && !disabled) {
+            onClick(label); // Pasar el label aquí
+        }
+    }
+
+
     return(
         <BotonStyled 
             $size={size}
             $color={color}
             $disabled={disabled}
             disabled={disabled}
-            onClick={onClick}
+            onClick={manejarClick}
         >
             <ContenidoBoton>
                 <LogoContenedor>{icon}</LogoContenedor>

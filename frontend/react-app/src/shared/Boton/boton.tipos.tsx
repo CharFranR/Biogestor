@@ -5,5 +5,5 @@ export interface PropiedadesBoton {
     label: string;
     content?: string;
     icon?: React.ReactNode; 
-    onClick?: () => void;
+    onClick?: (label: string) => void;
 }

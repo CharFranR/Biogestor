@@ -9,19 +9,27 @@ import { LuBookOpen } from "react-icons/lu";
 import { LuBot } from "react-icons/lu";
 import { LuCalculator } from "react-icons/lu";
 
+
 // #dee2e6
 
-const SidebarStyled = styled.div`
-  width: 280px;
+// tailwind css
+
+interface BarraLateralProps {
+  onBotonClick?: (nombreBoton: string) => void;
+  abierta?: boolean;
+}
+
+const SidebarStyled = styled.div<{ $abierta?: boolean  }>`
+  width: ${({ $abierta }) => ($abierta ? '280px' : '0')};
   height: 100vh;
   background-color: #fafafa;
+  overflow: hidden; /* oculta contenido cuando está cerrada */
+  transition: width 0.3s;
   border-right: 1px solid #dee2e6;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  margin: 0; /*
-  padding: 0; /* 
-`
+`;
 
 const Encabezado = styled.div`
   padding: 20px;
@@ -63,7 +71,11 @@ const Menu = styled.div`
   box-sizing: border-box;
 `
 
-export const BarraLateral = () => {
+
+export const BarraLateral = ({ abierta = true, onBotonClick }: BarraLateralProps) => {
+
+  console.log('BarraLateral abierta=', abierta);
+
   const itemsMenu = [
     { 
       label: "Perfil", 
@@ -106,11 +118,19 @@ export const BarraLateral = () => {
       icon: <LuBookOpen/>,
       color: "#fafafa",
       onClick: () => console.log("Cerrar sesión")
+    },
+    { 
+      label: "Redes", 
+      content: "Manuales y guías",
+      icon: <LuBookOpen/>,
+      color: "#fafafa",
+      onClick: () => console.log("Cerrar sesión")
     }
   ]
 
+ 
   return (
-    <SidebarStyled>
+    <SidebarStyled $abierta={abierta}>
       <Encabezado>
         
         <Logo src={logo} alt="Biogestor Logo"/>
@@ -131,7 +151,7 @@ export const BarraLateral = () => {
             content={item.content}
             icon={item.icon}
             color={item.color}
-            onClick={item.onClick}
+            onClick={() => onBotonClick && onBotonClick(item.label)}
           />
         ))}
       </Menu>

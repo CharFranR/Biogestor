@@ -3,20 +3,18 @@ from .models import Producto, Insumo, ProductoInsumo
 
 
 class ProductoSerializer (serializers.ModelSerializer):
-    # GET para ver la informacion de cada producto
     class Meta:
         model = Producto
         fields = ['id', 'nombre', 'peso', 'tamaño', 'presentacion']
 
 
 class InsumoSerializer (serializers.ModelSerializer):
-    # GET para ver la informacion de cada insumo
     class Meta:
         model = Insumo
         fields = ['id', 'nombre', 'unidad_medida']
 
 
-class ProductoInsumoSerializer(serializers.ModelSerializer):
+class ProductoInsumoSerializer(serializers.Serializer):
     producto = ProductoSerializer()
     insumos = serializers.ListField(child=serializers.DictField())
 

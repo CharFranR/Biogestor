@@ -12,10 +12,11 @@ router.register(r'productos', ProductoViewSet)
 router.register(r'insumos', InsumoViewSet)
 
 urlpatterns = [
-    path('', include(router.urls)),  # Cruds automaticos
 
     # endpoints extra:
     path('productos/crear_con_insumos/',
          CrearProductoConInsumosView.as_view(), name='crear-producto-insumos'),
     path('producto-insumos/', obtener_insumos, name='obtener-insumos'),
+
+    path('', include(router.urls)),  # Cruds automaticos
 ]
