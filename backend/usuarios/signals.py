@@ -20,8 +20,3 @@ def crear_perfil(sender, instance, created, **kwargs):
             instance.save()
             perfil.aprobado = True
             perfil.save()
-            print(
-                f"✅ Primer usuario {instance.username} es superusuario y está aprobado")
-
-        print(
-            f"📝 Perfil creado para {instance.username} - Aprobado: {perfil.aprobado}")

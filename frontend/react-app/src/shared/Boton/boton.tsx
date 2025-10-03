@@ -1,10 +1,24 @@
 import { PropiedadesBoton } from "./boton.tipos"
 import styled from 'styled-components'
 
+
+export const ContenidoBoton = styled.div`
+  display: flex;
+  align-items: center; 
+  gap: 12px; 
+  width: 100%;
+  text-align: left;
+  align-items: flex-start;
+  box-sizing: border-box; 
+`
+
+
 const BotonStyled = styled.button<{
   $size: string;
   $color: string;
   $disabled: boolean;
+  $sinMovimiento?: boolean;
+  $centrado?: boolean;
 }>`
   border: none;
   margin: 0;
@@ -26,30 +40,26 @@ const BotonStyled = styled.button<{
   justify-content: flex-start;
   background-color: ${props => props.$color};
   opacity: ${props => props.$disabled ? 0.6 : 1};
-  box-sizing: border-box; /* 
+  box-sizing: border-box;
 
-   /* Efecto hover solo cuando no está deshabilitado */
+  ${ContenidoBoton} {
+    justify-content: ${props => props.$centrado ? 'center' : 'flex-start'} !important;
+  }
+  
+
+  /* Efecto hover solo cuando no está deshabilitado y no tiene sinMovimiento */
   &:hover:not(:disabled) {
     color: #01663d; 
     background-color: #dee2e6; 
-    transform: translateX(5px);
+    ${props => !props.$sinMovimiento && 'transform: translateX(5px);'}
   }
 
-  /* Estilo para cuando está deshabilitado */
   &:disabled {
     cursor: not-allowed;
   }
 `
 
-const ContenidoBoton = styled.div`
-  display: flex;
-  align-items: center; 
-  gap: 12px; 
-  width: 100%;
-  text-align: left;
-  align-items: flex-start;
-  box-sizing: border-box; 
-`
+
 
 const LogoContenedor = styled.div`
   display: flex;
@@ -77,7 +87,8 @@ const SubEtiqueta = styled.div`
   width: 100%;
 `
 
-export const Boton: React.FC<PropiedadesBoton> = ({
+export const Boton: React.FC<PropiedadesBoton & { sinMovimiento?: boolean;
+  centrado?: boolean; }> = ({
     size = "small",
     disabled = false,
     color = "blue",
@@ -85,6 +96,8 @@ export const Boton: React.FC<PropiedadesBoton> = ({
     label,
     content,
     onClick,
+    sinMovimiento = false,
+    centrado = false,
 }) => {
 
   const manejarClick = () => {
@@ -100,7 +113,10 @@ export const Boton: React.FC<PropiedadesBoton> = ({
             $color={color}
             $disabled={disabled}
             disabled={disabled}
+            $centrado={centrado}
+            $sinMovimiento={sinMovimiento}
             onClick={manejarClick}
+            
         >
             <ContenidoBoton>
                 <LogoContenedor>{icon}</LogoContenedor>

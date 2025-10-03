@@ -31,11 +31,12 @@ const SidebarStyled = styled.div<{ $abierta?: boolean  }>`
   box-sizing: border-box;
 `;
 
-const Encabezado = styled.div`
+export const Encabezado = styled.div`
   padding: 20px;
   border-bottom: 1px solid #dee2e6;
   display: flex;
   align-items: center; 
+  
   gap: 10px;
 `
 const ContenedorTexto = styled.div`
@@ -44,7 +45,7 @@ const ContenedorTexto = styled.div`
   text-align: left; 
 `
 
-const Titulo = styled.div`
+export const Titulo = styled.div`
     margin: 0;
     color: #01663d;
     font-size: 1.6rem;
@@ -56,7 +57,7 @@ const Subtitulo = styled.div`
     color: #333;
     font-size: 1rem;
 `
-const Logo = styled.img`
+export const Logo = styled.img`
   border-radius: 15px;
   width: 50px;
   height: 50px;

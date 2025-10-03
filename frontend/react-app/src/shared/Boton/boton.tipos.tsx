@@ -6,4 +6,5 @@ export interface PropiedadesBoton {
     content?: string;
     icon?: React.ReactNode; 
     onClick?: (label: string) => void;
+    
 }
