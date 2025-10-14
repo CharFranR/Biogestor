@@ -2,6 +2,8 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     crear_usuario,
+    crear_institucion,
+    ver_instituciones,
     IniciarSesionView,
     cerrar_sesion,
     aprobar_usuario,
@@ -14,10 +16,14 @@ from .views import (
 
 urlpatterns = [
     # Autenticación
-    path('api/crear-usuario/', crear_usuario, name='crear_usuario'),
+    path('api/<str:nombre_institucion>/crear-usuario/', crear_usuario, name='crear_usuario'),
     path('api/iniciar-sesion/', IniciarSesionView.as_view(), name='iniciar_sesion'),
     path('api/cerrar-sesion/', cerrar_sesion, name='cerrar_sesion'),
     path('api/refrescar-token/', TokenRefreshView.as_view(), name='refrescar_token'),
+    
+    #Instituciones
+    path('api/crear-institucion/', crear_institucion, name= 'crear_institucion'),
+    path('api/ver-instituciones/', ver_instituciones, name= 'ver_instituciones'),
 
     # Usuarios
     path('api/usuario/actual/', obtener_usuario_actual,
