@@ -122,22 +122,6 @@ export const BarraLateral = ({ abierta = true, onBotonClick }: BarraLateralProps
       color: "#fafafa",
       path: "/calculadora",
       isActive: location.pathname === '/calculadora'
-    },
-    { 
-      label: "Asistente Virtual", 
-      content: "Ayuda especializada",
-      icon: <LuBot/>,
-      color: "#fafafa",
-      path: "/asistente",
-      isActive: location.pathname === '/asistente'
-    },
-    { 
-      label: "Documentación Técnica", 
-      content: "Manuales y guías",
-      icon: <LuBookOpen/>,
-      color: "#fafafa",
-      path: "/documentacion",
-      isActive: location.pathname === '/documentacion'
     }
   ]
 

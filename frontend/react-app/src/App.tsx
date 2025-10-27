@@ -7,8 +7,6 @@ import { Dashboard } from './features/dashboard/Dashboard';
 import { Sensors } from './features/sensors/Sensors';
 import { Reports } from './features/reports/Reports';
 import { ProductionCalculator } from './features/calculator/ProductionCalculator';
-import { VirtualAssistant } from './features/assistant/VirtualAssistant';
-import { TechnicalDocumentation } from './features/documentation/TechnicalDocumentation';
 import './services/interceptor';
 import { useEffect, useState } from 'react';
 import AlertDialog from './shared/popup/popup';
@@ -81,24 +79,6 @@ function App() {
           element={
             <ProtectedRoute>
               <ProductionCalculator />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/asistente" 
-          element={
-            <ProtectedRoute>
-              <VirtualAssistant />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/documentacion" 
-          element={
-            <ProtectedRoute>
-              <TechnicalDocumentation />
             </ProtectedRoute>
           } 
         />

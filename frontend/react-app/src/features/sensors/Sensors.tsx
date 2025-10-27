@@ -4,21 +4,64 @@ import { BarraLateral } from '../../shared/barraLateral/barraLateral';
 import { BarraArriba } from '../../shared/barraAriiba/barraArriba';
 import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
 
-interface SensorData {
-  temperatura: number;
-  ph: number;
-  presion: number;
-  produccionGas: number;
+// Registrar componentes de Chart.js
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+interface SensorDataPoint {
+  timestamp: number;
+  value: number;
 }
 
-interface SensorSummary {
-  label: string;
-  value: string;
-  status: string;
-  icon: string;
+interface SensorChart {
+  id: string;
+  title: string;
+  description: string;
+  unit: string;
   color: string;
-  borderColor: string;
+  icon: string;
+  data: SensorDataPoint[];
+  currentValue: number;
+  status: string;
+}
+
+interface WebSocketMessage {
+  type: 'sensor_data' | 'sensor_list' | 'error';
+  data?: any;
+  charts?: Array<{
+    id: string;
+    title: string;
+    description: string;
+    unit: string;
+    color: string;
+    icon: string;
+    currentValue: number;
+    status: string;
+  }>;
+  // Campos para el formato actual del WebSocket
+  temperatura?: number;
+  humedad?: number;
+  presion?: number;
+  produccionGas?: number;
 }
 
 // Styled Components
@@ -46,12 +89,8 @@ const SummaryGrid = styled.div`
 
 const ChartsGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 1.5rem;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
 `;
 
 const SummaryCard = styled(Card)<{ $borderColor: string }>`
@@ -108,9 +147,9 @@ const ChartTitle = styled.h4`
   align-items: center;
 `;
 
-const ChartIcon = styled.i`
+const ChartIcon = styled.i<{ $color: string }>`
   margin-right: 0.5rem;
-  color: #28a745;
+  color: ${props => props.$color};
 `;
 
 const ChartDescription = styled.p`
@@ -119,73 +158,253 @@ const ChartDescription = styled.p`
   color: #555;
 `;
 
-const ChartCanvas = styled.canvas`
+const ChartContainer = styled.div`
   width: 100%;
   height: 300px;
 `;
 
+const ConnectionStatus = styled.div<{ $connected: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: ${props => props.$connected ? '#d4edda' : '#f8d7da'};
+  color: ${props => props.$connected ? '#155724' : '#721c24'};
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+`;
+
+const NoChartsMessage = styled.div`
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+`;
+
+// Configuración inicial de sensores (se actualizará con datos reales)
+const initialCharts: SensorChart[] = [
+  {
+    id: 'temperatura',
+    title: 'Temperatura',
+    description: 'Temperatura del biodigestor en tiempo real',
+    unit: '°C',
+    color: '#26a69a',
+    icon: 'fas fa-thermometer-half',
+    data: [],
+    currentValue: 0,
+    status: 'Esperando datos'
+  },
+  {
+    id: 'humedad',
+    title: 'Humedad',
+    description: 'Nivel de humedad del ambiente',
+    unit: '%',
+    color: '#42a5f5',
+    icon: 'fas fa-tint',
+    data: [],
+    currentValue: 0,
+    status: 'Esperando datos'
+  },
+  {
+    id: 'presion',
+    title: 'Presión',
+    description: 'Presión del sistema en tiempo real',
+    unit: 'bar',
+    color: '#ffa726',
+    icon: 'fas fa-tachometer-alt',
+    data: [],
+    currentValue: 0,
+    status: 'Esperando datos'
+  }
+];
+
+// Opciones comunes para todos los gráficos
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      display: false,
+    },
+    title: {
+      display: false,
+    },
+    tooltip: {
+      mode: 'index' as const,
+      intersect: false,
+    },
+  },
+  scales: {
+    x: {
+      display: true,
+      title: {
+        display: true,
+        text: 'Tiempo',
+      },
+      ticks: {
+        maxTicksLimit: 8,
+      },
+    },
+    y: {
+      display: true,
+      title: {
+        display: true,
+        text: 'Valor',
+      },
+    },
+  },
+  interaction: {
+    mode: 'nearest' as const,
+    axis: 'x' as const,
+    intersect: false,
+  },
+  elements: {
+    line: {
+      tension: 0.4,
+    },
+    point: {
+      radius: 3,
+      hoverRadius: 6,
+    },
+  },
+  animation: {
+    duration: 300,
+  },
+};
+
 export const Sensors: React.FC = () => {
   const [sidebarAbierta, setSidebarAbierta] = useState(true);
-  const [sensorData, setSensorData] = useState<SensorData>({
-    temperatura: 37.5,
-    ph: 7.1,
-    presion: 1.1,
-    produccionGas: 23
-  });
+  const [charts, setCharts] = useState<SensorChart[]>(initialCharts);
+  const [isConnected, setIsConnected] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   const location = useLocation();
+  const wsRef = useRef<WebSocket | null>(null);
 
-  const tempChartRef = useRef<HTMLCanvasElement>(null);
-  const phChartRef = useRef<HTMLCanvasElement>(null);
-  const pressureChartRef = useRef<HTMLCanvasElement>(null);
-  const gasChartRef = useRef<HTMLCanvasElement>(null);
+  // Función para preparar datos para Chart.js
+  const prepareChartData = (chartData: SensorChart) => {
+    const labels = chartData.data.map((point, index) => {
+      const date = new Date(point.timestamp);
+      return `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+    });
 
-  const sensorSummaries: SensorSummary[] = [
-    {
-      label: 'Temperatura Actual',
-      value: `${sensorData.temperatura}°C`,
-      status: 'Estable',
-      icon: 'fas fa-thermometer-half',
-      color: '#26a69a',
-      borderColor: '#26a69a'
-    },
-    {
-      label: 'Nivel de pH',
-      value: sensorData.ph.toString(),
-      status: 'Neutro',
-      icon: 'fas fa-flask',
-      color: '#42a5f5',
-      borderColor: '#42a5f5'
-    },
-    {
-      label: 'Presión de Gas',
-      value: `${sensorData.presion} bar`,
-      status: 'Óptima',
-      icon: 'fas fa-tachometer-alt',
-      color: '#ffa726',
-      borderColor: '#ffa726'
-    },
-    {
-      label: 'Producción Biogás',
-      value: `${sensorData.produccionGas} m³/día`,
-      status: 'Alta',
-      icon: 'fas fa-gas-pump',
-      color: '#7e57c2',
-      borderColor: '#7e57c2'
-    }
-  ];
+    const data = chartData.data.map(point => point.value);
 
+    return {
+      labels,
+      datasets: [
+        {
+          label: chartData.title,
+          data: data,
+          borderColor: chartData.color,
+          backgroundColor: `${chartData.color}20`,
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4,
+        },
+      ],
+    };
+  };
+
+  // Conexión WebSocket
   useEffect(() => {
-    // Simular actualización de datos en tiempo real
-    const interval = setInterval(() => {
-      setSensorData(prev => ({
-        temperatura: 37.5 + (Math.random() - 0.5) * 0.5,
-        ph: 7.1 + (Math.random() - 0.5) * 0.1,
-        presion: 1.1 + (Math.random() - 0.5) * 0.05,
-        produccionGas: 23 + (Math.random() - 0.5) * 2
-      }));
-    }, 5000);
+    const connectWebSocket = () => {
+      try {
+        // Conectar al backend Django en puerto 8000
+        const wsUrl = `ws://localhost:8000/ws/mqtt/`;
+        
+        wsRef.current = new WebSocket(wsUrl);
+        
+        wsRef.current.onopen = () => {
+          console.log('WebSocket conectado');
+          setIsConnected(true);
+          setConnectionError(null);
+        };
 
-    return () => clearInterval(interval);
+        wsRef.current.onmessage = (event) => {
+          try {
+            const message: WebSocketMessage = JSON.parse(event.data);
+            console.log('Mensaje WebSocket recibido:', message);
+            
+            // Manejar el formato actual del WebSocket
+            if (message.type === 'sensor_data') {
+              // Actualizar datos de sensores con el formato actual
+              setCharts(prevCharts => 
+                prevCharts.map(chart => {
+                  let newValue: number | undefined;
+                  
+                  // Mapear los campos del WebSocket actual a nuestros IDs de gráfica
+                  if (chart.id === 'temperatura' && message.temperatura !== undefined) {
+                    newValue = message.temperatura;
+                  } else if (chart.id === 'humedad' && message.humedad !== undefined) {
+                    newValue = message.humedad;
+                  } else if (chart.id === 'presion' && message.presion !== undefined) {
+                    newValue = message.presion;
+                  } else if (chart.id === 'produccionGas' && message.produccionGas !== undefined) {
+                    newValue = message.produccionGas;
+                  }
+                  
+                  if (newValue !== undefined) {
+                    const newDataPoint = {
+                      timestamp: Date.now(),
+                      value: newValue
+                    };
+                    
+                    // Mantener solo los últimos 50 puntos de datos
+                    const newData = [...chart.data, newDataPoint].slice(-50);
+                    
+                    // Determinar estado basado en el valor
+                    let status = 'Normal';
+                    if (chart.id === 'temperatura') {
+                      status = newValue > 25 ? 'Alta' : newValue < 15 ? 'Baja' : 'Normal';
+                    } else if (chart.id === 'humedad') {
+                      status = newValue > 80 ? 'Alta' : newValue < 40 ? 'Baja' : 'Normal';
+                    } else if (chart.id === 'presion') {
+                      status = newValue > 1.5 ? 'Alta' : newValue < 0.8 ? 'Baja' : 'Normal';
+                    }
+                    
+                    return {
+                      ...chart,
+                      data: newData,
+                      currentValue: newValue,
+                      status: status
+                    };
+                  }
+                  return chart;
+                })
+              );
+            }
+
+          } catch (error) {
+            console.error('Error procesando mensaje WebSocket:', error);
+          }
+        };
+
+        wsRef.current.onclose = () => {
+          console.log('WebSocket desconectado');
+          setIsConnected(false);
+          // Reconectar después de 5 segundos
+          setTimeout(connectWebSocket, 5000);
+        };
+
+        wsRef.current.onerror = (error) => {
+          console.error('Error de WebSocket:', error);
+          setIsConnected(false);
+          setConnectionError('Error de conexión con el servidor');
+        };
+
+      } catch (error) {
+        console.error('Error al conectar WebSocket:', error);
+        setConnectionError('No se pudo conectar al servidor');
+      }
+    };
+
+    connectWebSocket();
+
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
   }, []);
 
   return (
@@ -199,70 +418,82 @@ export const Sensors: React.FC = () => {
         />
         
         <ContentWrapper>
+          {/* Estado de conexión */}
+          <ConnectionStatus $connected={isConnected}>
+            <i className={`fas ${isConnected ? 'fa-check-circle' : 'fa-exclamation-triangle'}`}></i>
+            {isConnected ? 'Conectado al servidor en tiempo real' : 'Desconectado'}
+            {connectionError && ` - ${connectionError}`}
+          </ConnectionStatus>
+
           {/* Tarjetas de Resumen */}
-          <SummaryGrid>
-            {sensorSummaries.map((summary, index) => (
-              <SummaryCard key={index} $borderColor={summary.borderColor}>
-                <IconContainer $color={summary.color}>
-                  <i className={summary.icon}></i>
-                </IconContainer>
-                <SummaryContent>
-                  <SummaryLabel>{summary.label}</SummaryLabel>
-                  <SummaryValue>{summary.value}</SummaryValue>
-                  <SummaryStatus $color={summary.color}>
-                    {summary.status}
-                  </SummaryStatus>
-                </SummaryContent>
-              </SummaryCard>
-            ))}
-          </SummaryGrid>
+          {charts.length > 0 && (
+            <SummaryGrid>
+              {charts.map((chart) => (
+                <SummaryCard key={chart.id} $borderColor={chart.color}>
+                  <IconContainer $color={chart.color}>
+                    <i className={chart.icon}></i>
+                  </IconContainer>
+                  <SummaryContent>
+                    <SummaryLabel>{chart.title}</SummaryLabel>
+                    <SummaryValue>
+                      {chart.currentValue} {chart.unit}
+                    </SummaryValue>
+                    <SummaryStatus $color={chart.color}>
+                      {chart.status}
+                    </SummaryStatus>
+                  </SummaryContent>
+                </SummaryCard>
+              ))}
+            </SummaryGrid>
+          )}
 
-          {/* Gráficos */}
-          <ChartsGrid>
-            <ChartCard>
-              <ChartTitle>
-                <ChartIcon className="fas fa-chart-line" />
-                Temperatura (Últimas 24h)
-              </ChartTitle>
-              <ChartDescription>
-                Variación de la temperatura del biodigestor.
-              </ChartDescription>
-              <ChartCanvas ref={tempChartRef} />
-            </ChartCard>
-
-            <ChartCard>
-              <ChartTitle>
-                <ChartIcon className="fas fa-chart-line" />
-                Nivel de pH (Últimas 24h)
-              </ChartTitle>
-              <ChartDescription>
-                Seguimiento de la acidez/alcalinidad.
-              </ChartDescription>
-              <ChartCanvas ref={phChartRef} />
-            </ChartCard>
-
-            <ChartCard>
-              <ChartTitle>
-                <ChartIcon className="fas fa-chart-bar" />
-                Presión (Últimas 24h)
-              </ChartTitle>
-              <ChartDescription>
-                Niveles de presión dentro del biodigestor.
-              </ChartDescription>
-              <ChartCanvas ref={pressureChartRef} />
-            </ChartCard>
-
-            <ChartCard>
-              <ChartTitle>
-                <ChartIcon className="fas fa-chart-area" />
-                Producción de Gas (Últimas 24h)
-              </ChartTitle>
-              <ChartDescription>
-                Volumen de biogás generado.
-              </ChartDescription>
-              <ChartCanvas ref={gasChartRef} />
-            </ChartCard>
-          </ChartsGrid>
+          {/* Gráficos Dinámicos con Chart.js */}
+          {charts.length > 0 ? (
+            <ChartsGrid>
+              {charts.map((chart) => (
+                <ChartCard key={chart.id}>
+                  <ChartTitle>
+                    <ChartIcon $color={chart.color} className={chart.icon} />
+                    {chart.title}
+                  </ChartTitle>
+                  <ChartDescription>
+                    {chart.description}
+                  </ChartDescription>
+                  <ChartContainer>
+                    <Line 
+                      data={prepareChartData(chart)} 
+                      options={{
+                        ...chartOptions,
+                        plugins: {
+                          ...chartOptions.plugins,
+                          title: {
+                            display: true,
+                            text: `${chart.title} (${chart.unit})`,
+                          },
+                        },
+                        scales: {
+                          ...chartOptions.scales,
+                          y: {
+                            ...chartOptions.scales.y,
+                            title: {
+                              display: true,
+                              text: chart.unit,
+                            },
+                          },
+                        },
+                      }}
+                    />
+                  </ChartContainer>
+                </ChartCard>
+              ))}
+            </ChartsGrid>
+          ) : (
+            <NoChartsMessage>
+              <i className="fas fa-chart-line" style={{ fontSize: '3rem', marginBottom: '1rem', color: '#ccc' }}></i>
+              <h3>Esperando datos de sensores...</h3>
+              <p>Los gráficos aparecerán automáticamente cuando se reciban datos del servidor.</p>
+            </NoChartsMessage>
+          )}
         </ContentWrapper>
       </MainContent>
     </Container>
