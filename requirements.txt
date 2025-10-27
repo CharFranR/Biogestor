@@ -8,3 +8,6 @@ djangorestframework
 django-extensions
 pygraphviz
 django-cors-headers
+channels
+channels-redis
+paho-mqtt
