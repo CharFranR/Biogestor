@@ -12,6 +12,7 @@ from .models import FillingStage, SensorReading, Report
 from .serializers import FillingStageSerializer, ReportSerializer
 from biocalculadora.calculators import estimate_timeseries_for_material
 from datetime import datetime, timedelta
+from django.utils import timezone
 import pandas as pd
 import io
 try:
@@ -185,6 +186,26 @@ class ReportHistoryAPIView(APIView):
         reports = Report.objects.all().order_by('-created_at')
         serializer = ReportSerializer(reports, many=True)
         return Response({'history': serializer.data})
+
+class StatsAPIView(APIView):
+    """Devuelve métricas reales para el dashboard.
+
+    - etapas_activas: número de etapas (llenados) activas
+    - reportes_generados: total de reportes en el sistema
+    - lecturas_hoy: total de lecturas de sensores registradas hoy (informativo)
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        today = timezone.now().date()
+        etapas_activas = FillingStage.objects.filter(active=True).count()
+        reportes_generados = Report.objects.count()
+        lecturas_hoy = SensorReading.objects.filter(timestamp__date=today).count()
+        return Response({
+            "etapas_activas": etapas_activas,
+            "reportes_generados": reportes_generados,
+            "lecturas_hoy": lecturas_hoy,
+        })
 
 class CurrentProductionAPIView(APIView):
     permission_classes = [AllowAny]

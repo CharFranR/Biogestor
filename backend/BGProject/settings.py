@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 import os
 import environ
 
@@ -18,25 +19,25 @@ import environ
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-env = environ.Env(
-    DEBUG=(bool, True)
-)
-
+# Initialize environment reader and load .env from backend/.env
+env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('DJANGO_SECRET_KEY')
+SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env('DEBUG', True)
+# Use a boolean cast and default to False when not provided
+DEBUG = env.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost"
-]
+# Hosts permitidos (configurable por entorno). Ej.: ALLOWED_HOSTS=127.0.0.1,localhost,192.168.1.50
+ALLOWED_HOSTS = env.list(
+    "ALLOWED_HOSTS",
+    default=["127.0.0.1", "localhost"],
+)
 
 
 # Application definition
@@ -45,7 +46,7 @@ INSTALLED_APPS = [
     'channels',  
     "corsheaders",
     'storages',
-    'usuarios',
+    'usuarios.apps.LoginConfig',
     'inventario',
     'recursos',
     'dashboard',
@@ -108,14 +109,30 @@ REST_FRAMEWORK = {
 # }
 
 SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'BLACKLIST_AFTER_ROTATION': True,
     'ROTATE_REFRESH_TOKENS': True,
 }
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://localhost:3000",
-]
+# Orígenes CORS permitidos (configurable por entorno).
+# Ej.: CORS_ALLOWED_ORIGINS=http://localhost:5173,http://192.168.1.50:5173
+CORS_ALLOWED_ORIGINS = env.list(
+    "CORS_ALLOWED_ORIGINS",
+    default=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+    ],
+)
+
+# Opcional: confiar en orígenes para CSRF cuando se use sesión/cookies (JWT normalmente no lo requiere)
+CSRF_TRUSTED_ORIGINS = env.list(
+    "CSRF_TRUSTED_ORIGINS",
+    default=[
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ],
+)
 
 
 ROOT_URLCONF = 'BGProject.urls'
@@ -200,24 +217,3 @@ STATIC_URL = "/static/"
 # STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-env = environ.Env()
-environ.Env.read_env()
-
-# storages
-# STORAGES = {
-#     "staticfiles": {
-#         "BACKEND": "django.core.files.storage.FileSystemStorage",
-#         "OPTIONS": {
-#             "location": STATIC_ROOT,
-#         }
-#     },
-#     "default": {
-#         "BACKEND": "storages.backends.s3.S3Storage",
-#         "OPTIONS": {
-#             "bucket_name": env('AWS_STORAGE_BUCKET_NAME'),
-
-#             "region_name": env('AWS_S3_REGION_NAME'),
-
-#         },
-#     },
-# }

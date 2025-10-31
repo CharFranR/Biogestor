@@ -11,7 +11,7 @@ from .serializers import (
     PermisosSerializer
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Permisos, Perfil
 from .permisos import PuedeAprobarUsuarios
@@ -21,6 +21,7 @@ from .permisos import PuedeAprobarUsuarios
 
 # Enpoint para crear usuario
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def crear_usuario(request):
     # Crea un nuevo usuario pero sin aprobacion
     if request.method == 'POST':
@@ -51,6 +52,8 @@ class IniciarSesionView(TokenObtainPairView):
 # Endpoint para cerrar sesióm
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def cerrar_sesion(request):
     """
     Cierra sesión invalidando el token de refresh
@@ -83,16 +86,12 @@ def cerrar_sesion(request):
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated, PuedeAprobarUsuarios])
 def aprobar_usuario(request, usuario_id):
     """
     Aprueba un usuario (solo para administradores)
     """
-    # Verificar si el usuario actual es staff/admin
-    if not request.user.is_staff:
-        return Response(
-            {'error': 'No tienes permisos para realizar esta acción'},
-            status=status.HTTP_403_FORBIDDEN
-        )
+    # Permisos ya validados por decorator
 
     try:
         usuario = User.objects.get(id=usuario_id)
@@ -182,24 +181,19 @@ def cambiar_permisos(request, usuario_id):
 
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def obtener_usuario_actual(request):
     """
     Obtiene la información del usuario autenticado
     """
-    if request.user.is_authenticated:
-        serializer = UsuarioSerializer(request.user)
-        return Response(serializer.data)
-    else:
-        return Response(
-            {'error': 'Usuario no autenticado'},
-            status=status.HTTP_401_UNAUTHORIZED
-        )
+    serializer = UsuarioSerializer(request.user)
+    return Response(serializer.data)
 
 # Endpoint para listar todos los usuarios
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated, PuedeAprobarUsuarios])  # ✅ Agrega este decorator
+@permission_classes([IsAuthenticated, PuedeAprobarUsuarios])  
 def listar_usuarios(request):
     """
     Lista todos los usuarios aprobados (requiere permiso AprobarUsuarios)
@@ -221,18 +215,11 @@ def listar_usuarios(request):
 
 # Endpoint para listar usuarios pendientes de aprobación
 @api_view(['GET'])
-@permission_classes([IsAuthenticated, PuedeAprobarUsuarios])  # ✅ Agrega este decorator
+@permission_classes([IsAuthenticated, PuedeAprobarUsuarios]) 
 def usuarios_pendientes(request):
     """
     Lista usuarios pendientes de aprobación (requiere permiso AprobarUsuarios)
     """
-    # ✅ ELIMINA esta verificación manual
-    # if not request.user.is_staff:
-    #     return Response(
-    #         {'error': 'No tienes permisos para realizar esta acción'},
-    #         status=status.HTTP_403_FORBIDDEN
-    #     )
-
     usuarios_pendientes = User.objects.filter(perfil__aprobado=False)
     serializer = UsuarioSerializer(usuarios_pendientes, many=True)
 

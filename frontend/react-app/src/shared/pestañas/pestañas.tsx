@@ -130,14 +130,9 @@ export default function BasicTabs(props: PestañaProps & TiposUsuarios) {
         { id: '1', codename: 'AprobarUsuarios', name: 'Aprobar Usuarios', granted: false },
         { id: '2', codename: 'VerReportes', name: 'Ver Reportes', granted: false },
         { id: '3', codename: 'GenerarReportes', name: 'Generar Reportes', granted: false },
-        { id: '4', codename: 'VerRecursos', name: 'Ver Recursos', granted: false },
-        { id: '5', codename: 'SubirRecursos', name: 'Subir Recursos', granted: false },
-        { id: '6', codename: 'DescargarRecursos', name: 'Descargar Recursos', granted: false },
         { id: '7', codename: 'VerDashboard', name: 'Ver Dashboard', granted: false },
         { id: '8', codename: 'VerInventario', name: 'Ver Inventario', granted: false },
         { id: '9', codename: 'ModificarInventario', name: 'Modificar Inventario', granted: false },
-        { id: '10', codename: 'InteractuarChatbot', name: 'Interactuar con Chatbot', granted: false },
-        { id: '11', codename: 'VerDocumentacion', name: 'Ver Documentación', granted: false },
       ];
       
       setPermisos(permisosEjemplo);
@@ -162,7 +157,7 @@ export default function BasicTabs(props: PestañaProps & TiposUsuarios) {
     setPermisosActualizados({});
   };
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
 

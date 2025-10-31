@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import CreateReportAPIView, RegenerateReportAPIView
+from .views import CreateReportAPIView, RegenerateReportAPIView, StatsAPIView
 
 urlpatterns = [
     path('', views.dashboard_view, name='dashboard'),
@@ -10,5 +10,6 @@ urlpatterns = [
     path('production/current/', views.CurrentProductionAPIView.as_view(), name='current_production'),
     path('report/current/', views.CurrentReportAPIView.as_view(), name='current_report'),
     path('report/history/', views.ReportHistoryAPIView.as_view(), name='report_history'),
-        path('report/download/<int:report_id>/<str:filetype>/', views.download_report_file, name='download_report_file'),
+    path('report/download/<int:report_id>/<str:filetype>/', views.download_report_file, name='download_report_file'),
+    path('stats/', StatsAPIView.as_view(), name='dashboard_stats'),
 ]

@@ -1,10 +1,11 @@
-const API_BASE_URL = 'http://localhost:8000'; 
+// Usar la misma origin (Vite) y dejar que el proxy redirija a Django
+const API_BASE_URL = '';
 
 // Servicio de autenticacion
 export const authService = {
-  async registrarUsuario(datosUsuario) {
+  async registrarUsuario(datosUsuario: any) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/crear-usuario/`, {
+  const response = await fetch(`${API_BASE_URL}/api/crear-usuario/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -29,9 +30,9 @@ export const authService = {
     }
   },
 
-  async iniciarSesion(credenciales) {
+  async iniciarSesion(credenciales: any) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/iniciar-sesion/`, {
+  const response = await fetch(`${API_BASE_URL}/api/iniciar-sesion/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

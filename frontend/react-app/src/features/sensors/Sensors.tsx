@@ -388,10 +388,11 @@ export const Sensors: React.FC = () => {
 
   // Conexión WebSocket
   useEffect(() => {
-    const connectWebSocket = () => {
+  const connectWebSocket = () => {
       try {
-        // Conectar al backend Django en puerto 8000
-        const wsUrl = `ws://localhost:8000/ws/mqtt/`;
+  // Construir URL de WebSocket a partir de la base HTTP
+  // Use same-origin WS via Vite proxy to avoid HTTPS->HTTP mixed content
+  const wsUrl = `${window.location.origin.replace(/^http/i, 'ws')}/ws/mqtt/`;
         
         wsRef.current = new WebSocket(wsUrl);
         

@@ -7,14 +7,10 @@ class Permisos(models.Model):
     AprobarUsuarios = models.BooleanField(default=False)
     VerReportes = models.BooleanField(default=False)
     GenerarReportes = models.BooleanField(default=False)
-    VerRecursos = models.BooleanField(default=False)
-    SubirRecursos = models.BooleanField(default=False)
-    DescargarRecursos = models.BooleanField(default=False)
     VerDashboard = models.BooleanField(default=False)
     VerInventario = models.BooleanField(default=False)
     ModificarInventario = models.BooleanField(default=False)
-    InteractuarChatbot = models.BooleanField(default=False)
-    VerDocumentacion = models.BooleanField(default=False)
+    # Campos obsoletos eliminados: VerRecursos, SubirRecursos, DescargarRecursos, InteractuarChatbot, VerDocumentacion
 
 class Perfil(models.Model):
     # Gracias al related_name = 'perfil' el atributo user puede accedet a su clase padre, básicamente es hacerle saber

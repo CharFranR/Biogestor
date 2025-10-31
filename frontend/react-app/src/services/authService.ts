@@ -1,11 +1,10 @@
 import axios from 'axios';
 import { LoginCredentials, RegisterData, AuthResponse, User, ApiResponse } from '../types';
 
-const API_BASE_URL = 'http://localhost:8000';
-
-// Configuración base de axios
+// Configuración base de axios reutilizando la baseURL global (interceptor)
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  // Use relative baseURL in dev so that Vite proxy handles CORS and HTTPS
+  baseURL: (import.meta as any)?.env?.VITE_API_BASE_URL ?? '',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -90,7 +89,7 @@ export const authService = {
     try {
       const refreshToken = localStorage.getItem('refreshToken');
       if (refreshToken) {
-        await apiClient.post('/api/logout/', { refresh_token: refreshToken });
+        await apiClient.post('/api/cerrar-sesion/', { refresh_token: refreshToken });
       }
     } catch (error) {
       console.warn('Error durante logout:', error);
@@ -109,7 +108,7 @@ export const authService = {
         throw new Error('No hay token de refresh disponible');
       }
 
-      const response = await apiClient.post('/api/token/refresh/', {
+      const response = await apiClient.post('/api/refrescar-token/', {
         refresh: refreshToken,
       });
 

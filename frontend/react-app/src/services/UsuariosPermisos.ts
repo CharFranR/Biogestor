@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const ListarUsuariosAprobados = async () => {
   try {
-    const response = await axios.get("http://localhost:8000/api/usuarios/");
+    const response = await axios.get("/api/usuarios/");
     return response.data;
   } catch (error) {
     console.error("Error en ListarUsuarios:", error);
@@ -13,7 +13,7 @@ export const ListarUsuariosAprobados = async () => {
 export const ListarUsuariosPendientes = async () => {
   try {
     const response = await axios.get(
-      "http://localhost:8000/api/usuarios/pendientes/"
+      "/api/usuarios/pendientes/"
     );
     return response.data;
   } catch (error) {
@@ -25,7 +25,7 @@ export const ListarUsuariosPendientes = async () => {
 export const aprobarUsuario = async (usuarioId: number) => {
   try {
     const response = await axios.post(
-      `http://localhost:8000/api/usuario/${usuarioId}/aprobar/`
+      `/api/usuario/${usuarioId}/aprobar/`
     );
     return response.data;
   } catch (error) {

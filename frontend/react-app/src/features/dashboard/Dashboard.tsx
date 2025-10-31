@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 import { Card } from '../../shared/card/card';
 import { BarraLateral } from '../../shared/barraLateral/barraLateral';
 import { BarraArriba } from '../../shared/barraAriiba/barraArriba';
@@ -18,8 +19,9 @@ interface UserProfile {
 }
 
 interface DashboardStats {
-  sensoresActivos: number;
+  etapasActivas: number;
   reportesGenerados: number;
+  lecturasHoy?: number;
 }
 
 // Styled Components
@@ -197,22 +199,34 @@ const SectionTitle = styled.h2`
 export const Dashboard: React.FC = () => {
   const [sidebarAbierta, setSidebarAbierta] = useState(true);
   const [userData, setUserData] = useState<UserProfile | null>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const location = useLocation();
 
-  // Datos del usuario
+  // Datos del usuario reales desde backend
   useEffect(() => {
-    const mockUserData: UserProfile = {
-      id: 1,
-      username: "usuario_actual",
-      email: "actual@ejemplo.com",
-      first_name: "Juan",
-      last_name: "Pérez",
-      perfil: {
-        aprobado: true
+    let mounted = true;
+    const fetchUser = async () => {
+      try {
+        const resp = await axios.get('/api/usuario/actual/');
+        if (mounted) setUserData(resp.data as UserProfile);
+      } catch (e: any) {
+        // Si no autenticado, redirigir a login
+        if (e?.response?.status === 401) {
+          window.location.href = '/login';
+        }
       }
     };
-
-    setUserData(mockUserData);
+    const fetchStats = async () => {
+      try {
+        const resp = await axios.get('/api/dashboard/stats/');
+        if (mounted) setStats(resp.data as DashboardStats);
+      } catch (e) {
+        // Silenciar por ahora; podemos mostrar fallback si hace falta
+      }
+    };
+    fetchUser();
+    fetchStats();
+    return () => { mounted = false; };
   }, []);
 
   // Get current view name based on route
@@ -237,10 +251,8 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const stats: DashboardStats = {
-    sensoresActivos: 12,
-    reportesGenerados: 159
-  };
+  // Fallback por si aún no carga
+  const safeStats: DashboardStats = stats || { etapasActivas: 0, reportesGenerados: 0 };
 
   // Función para obtener las iniciales del usuario
   const getUserInitials = () => {
@@ -306,8 +318,8 @@ export const Dashboard: React.FC = () => {
                   <i className="fas fa-microchip"></i>
                 </StatIcon>
                 <StatInfo>
-                  <StatValue>{stats.sensoresActivos}</StatValue>
-                  <StatLabel>Sensores Activos</StatLabel>
+                  <StatValue>{safeStats.etapasActivas}</StatValue>
+                  <StatLabel>Etapas Activas</StatLabel>
                 </StatInfo>
               </StatContent>
             </StatCard>
@@ -318,7 +330,7 @@ export const Dashboard: React.FC = () => {
                   <i className="fas fa-file-alt"></i>
                 </StatIcon>
                 <StatInfo>
-                  <StatValue>{stats.reportesGenerados}</StatValue>
+                  <StatValue>{safeStats.reportesGenerados}</StatValue>
                   <StatLabel>Reportes Generados</StatLabel>
                 </StatInfo>
               </StatContent>

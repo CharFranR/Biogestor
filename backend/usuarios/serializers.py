@@ -37,6 +37,7 @@ class ValidarAprobacion (TokenObtainPairSerializer):
 
         data = super().validate(attrs)
 
+        # Requiere aprobación para iniciar sesión
         if hasattr(self.user, 'perfil') and not self.user.perfil.aprobado:
             raise serializers.ValidationError({
                 "detail": "Tu cuenta está pendiente de aprobación."

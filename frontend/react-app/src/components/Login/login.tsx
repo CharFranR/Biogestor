@@ -47,8 +47,8 @@ export const Login = () => {
       
       console.log('Respuesta del servidor:', respuesta);
       
-      // Redirigir al dashboard
-      navigate('/dashboard');
+  // Redirigir a una ruta existente protegida
+  navigate('/sensores');
 
     } catch (error: any) {
       console.error('Error en login:', error);

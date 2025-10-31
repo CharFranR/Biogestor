@@ -4,8 +4,8 @@ import axios from "axios";
 console.log("🔧 Interceptor cargado");
 
 // Configure baseURL so relative axios calls hit the Django backend instead of Vite dev server
-// You can set VITE_API_BASE_URL in .env for environments; fallback to localhost:8000
-axios.defaults.baseURL = (import.meta as any)?.env?.VITE_API_BASE_URL || "http://localhost:8000";
+// Prefer relative baseURL so Vite proxy handles CORS/HTTPS; set VITE_API_BASE_URL only in real deployments
+axios.defaults.baseURL = (import.meta as any)?.env?.VITE_API_BASE_URL ?? "";
 
 // Variable para evitar múltiples refresh simultáneos
 let refreshPromise: Promise<string> | null = null;
@@ -16,7 +16,7 @@ const refrescarToken = async (): Promise<string> => {
     console.log("🔄 Intentando refrescar token...");
 
     const response = await axios.post(
-      "http://localhost:8000/api/token/refresh/",
+      "/api/refrescar-token/",
       {
         refresh: refreshToken,
       }
