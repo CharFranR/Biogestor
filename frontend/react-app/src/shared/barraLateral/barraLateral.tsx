@@ -20,6 +20,7 @@ interface BarraLateralProps {
 
 const SidebarStyled = styled.div<{ $abierta?: boolean  }>`
   width: ${({ $abierta }) => ($abierta ? '280px' : '0')};
+  flex: 0 0 auto; /* evita que el contenedor flex colapse el ancho */
   height: 100vh;
   background-color: #fafafa;
   overflow: hidden; /* oculta contenido cuando está cerrada */
@@ -75,9 +76,6 @@ const Menu = styled.div`
 export const BarraLateral = ({ abierta = true, onBotonClick }: BarraLateralProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Fuerza la barra abierta en la vista de Permisos para evitar cierres inesperados
-  const abiertaEffective = location.pathname === '/permisos' ? true : abierta;
 
   const itemsMenu = [
     { 
@@ -135,7 +133,7 @@ export const BarraLateral = ({ abierta = true, onBotonClick }: BarraLateralProps
   }
  
   return (
-    <SidebarStyled $abierta={abiertaEffective}>
+    <SidebarStyled $abierta={abierta}>
       <Encabezado>
         
         <Logo src={logo} alt="Biogestor Logo"/>
