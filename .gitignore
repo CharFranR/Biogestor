@@ -1,6 +1,4 @@
-.continue
 .env
 .venv
 
 __pycache__
-
