@@ -21,18 +21,41 @@ Ser la plataforma líder que impulsa a las MIPYMEs hacia una producción eficien
 
 #### Funcionalidades
 
-- Registro y organización de formulaciones de productos.
-- Calculadora de cantidades y proporciones.
-- Marketplace de recursos descargables.
-- Asistente virtual.
+- **Dashboard en Tiempo Real**: Monitoreo de biodigestores con WebSockets
+- **Gestión de Llenados**: Control de etapas de producción de biogás
+- **Reportes Científicos**: Generación de reportes PDF/Excel con análisis técnico
+- **Sistema IoT**: Registro y monitoreo de n sensores y actuadores
+- **Calculadora Avanzada**: Modelo matemático validado científicamente
+- **Gestión de Usuarios**: Sistema de permisos por roles
+- **Alertas Automáticas**: Notificaciones en tiempo real de eventos críticos
+- **Marketplace de Recursos**: Descarga de documentación y recursos
+- **Asistente Virtual**: Chatbot integrado
 
-#### Tecnologías utilizadas
+#### Tecnologías Utilizadas
 
-- Django 
-- Python
-- PostgreSQL
-- HTML
-- CSS
+**Backend:**
+- Django 4.2+ & Django REST Framework
+- Python 3.13+
+- PostgreSQL 15
+- Redis 7 (caché y WebSockets)
+- Channels (WebSockets)
+- MQTT (IoT)
+
+**Frontend:**
+- React 18
+- TypeScript
+- Styled Components
+- Chart.js
+- Vite
+
+**DevOps:**
+- Docker & Docker Compose
+- Nginx
+- Daphne (ASGI server)
+
+**IoT:**
+- MQTT (Eclipse Mosquitto)
+- Sensores y actuadores configurables
 
 ---
 
@@ -45,56 +68,96 @@ Ser la plataforma líder que impulsa a las MIPYMEs hacia una producción eficien
 - Haber instalado e iniciado docker desktop.
 
 
-#### Descargar el repositorio
-
-Biogestor puede ser descargado de dos formas: como archivo `.zip` o clonando el repositorio localmente.
-
-- **Descargar archivo `.zip`:**  
-  Accede a la sección "Code" en el repositorio y selecciona "Download ZIP".
-
-- **Clonar el repositorio:**  
-  Ejecuta el siguiente comando en tu terminal:
+#### Clonar el repositorio
 
 ```bash
-git clone https://github.com/SProtector04/B107.git
+git clone https://github.com/CharFranR/Biogestor.git
+cd Biogestor
 ```
 
-#### Instalar dependencias
+#### Configurar variables de entorno
 
-Una vez el repositorio se encuentra en nuestra máquina local es necesario descargar las dependencias del proyecto, para ello en la dirección B107/Biogestor/ se debe ejecutar el comando:
+Crear archivo `.env` en la raíz del proyecto:
 
 ```bash
-pip install -r requirements.txt
+cp .env.example .env
+# Editar .env con tus configuraciones
 ```
 
-Esto descargará e instalará todas las dependencias necesarias, la velocidad de descarga depende de nuestra conexión a internet.
-
-#### Iniciar la base de datos
-
-Una vez las dependencias han sido instaladas, es necesario abrir la aplicación Docker Compose para hacer uso de motor de contenedores Docker.
-
-Con la aplicación en ejecución en la dirección B107/Biogestor/ se debe ejecutar el comando:
+#### Iniciar con Docker (Recomendado)
 
 ```bash
-docker compose up
+# Construir e iniciar todos los servicios
+docker-compose up --build
+
+# Crear superusuario
+docker-compose exec backend python manage.py createsuperuser
 ```
 
-#### Hacer las migraciones
+**Servicios disponibles:**
+- Backend API: http://localhost:8000
+- Frontend: http://localhost:8080
+- Admin Django: http://localhost:8000/admin
+- PostgreSQL: localhost:5432
+- Redis: localhost:6379
+- MQTT: localhost:1883
 
-Ahora es necesario realizar las migraciones de la base de datos la cual consiste en crear las tablas necesarias para el proyecto, en una terminal ejecuta el comando: 
+#### Desarrollo Local (Sin Docker)
 
-```bash
-python manage.py migrate
+Ver la [Guía de Desarrollo](Docs/DEVELOPER_GUIDE.md) para instrucciones detalladas de configuración local.
+
+---
+
+## 📚 Documentación
+
+- **[Guía de Desarrollo](Docs/DEVELOPER_GUIDE.md)**: Setup completo y mejores prácticas
+- **[Documentación de API](Docs/API_DOCUMENTATION.md)**: Todos los endpoints REST
+- **[Modelo Matemático](backend/biocalculadora/README_MODEL.md)**: Modelo científico del biodigestor
+- **[Resumen de Refactorización](Docs/REFACTORING_SUMMARY.md)**: Cambios recientes v2.0
+
+---
+
+## 🏗️ Arquitectura
+
+```
+Biogestor/
+├── backend/          # Django REST API
+├── frontend/         # React TypeScript
+├── deploy/           # Configuraciones
+├── Docs/             # Documentación
+└── docker-compose.yml
 ```
 
+### Características Principales
 
-#### Levantar el servidor
+**✨ Tiempo Real**
+- WebSockets para actualizaciones en vivo
+- Notificaciones push
+- Monitoreo de sensores en tiempo real
 
-Finalmente es posible ejecutar la aplicación ejecutando en una terminal el comando:
+**🔧 IoT Escalable**
+- Registro dinámico de n sensores/actuadores
+- Protocolo MQTT
+- Alertas automáticas por umbrales
+- Gestión de calibraciones
 
-```bash
-python manage.py runserver
-```
+**📊 Reportes Científicos**
+- Modelo matemático validado
+- Bibliografía científica
+- Exportación PDF/Excel/CSV
+- Análisis de producción real vs esperada
+
+**🔐 Seguridad**
+- Autenticación JWT
+- Sistema de permisos por roles
+- 0 vulnerabilidades (CodeQL verified)
+- Variables de entorno para credenciales
+
+**⚡ Performance**
+- Caché con Redis
+- Optimización de queries
+- Multi-stage Docker builds
+- Healthchecks integrados
 ## Vistas
 
 <p align="center">
