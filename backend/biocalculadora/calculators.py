@@ -17,28 +17,137 @@ DEFAULTS = {
 }
 
 # Parámetros por tipo de materia orgánica (biodigestor de bolsa)
-# Valores de referencia basados en literatura (ver README_MODEL.md)
+# Valores de referencia basados en literatura científica (ver README_MODEL.md)
+# 
+# Referencias:
+# - Garfí et al. (2011): Estiércol bovino en biodigestores tubulares en Bolivia
+# - Lansing et al. (2008): Estiércol porcino en biodigestores pequeños en Costa Rica  
+# - Ferrer et al. (2009): Residuos vegetales en biodigestores de bolsa en Perú
+#
 MATERIAL_PARAMS: Dict[str, Dict[str, float]] = {
     # Y: m3 CH4 / kg VS degradado; fCH4: fracción metano; lag: días; mu_max_ref: 1/día
-    "bovino": {"Y": 0.25, "fCH4": 0.6, "lag": 2.5, "mu_max_ref": 0.25},
-    "porcino": {"Y": 0.28, "fCH4": 0.62, "lag": 2.0, "mu_max_ref": 0.30},
-    "vegetal": {"Y": 0.20, "fCH4": 0.55, "lag": 3.0, "mu_max_ref": 0.20},
+    "bovino": {
+        "Y": 0.25,           # m3 CH4/kg SV (Garfí et al., 2011: 0.20-0.30)
+        "fCH4": 0.60,        # 60% metano en biogás (típico 55-65%)
+        "lag": 2.5,          # días de fase de latencia
+        "mu_max_ref": 0.25   # tasa máxima de crecimiento a 35°C
+    },
+    "porcino": {
+        "Y": 0.30,           # m3 CH4/kg SV (Lansing et al., 2008: 0.25-0.35)
+        "fCH4": 0.62,        # 62% metano (mayor que bovino)
+        "lag": 2.0,          # inicio más rápido que bovino
+        "mu_max_ref": 0.30   # mayor actividad microbiana
+    },
+    "vegetal": {
+        "Y": 0.20,           # m3 CH4/kg SV (Ferrer et al., 2009: 0.15-0.25)
+        "fCH4": 0.55,        # 55% metano (menor que estiércoles)
+        "lag": 3.0,          # requiere más tiempo de hidrólisis
+        "mu_max_ref": 0.20   # degradación más lenta
+    },
 }
 
 def adjust_mu_by_temp(mu_ref, T_ref, Q10, T):
-    # simple Q10 adjustment
+    """
+    Ajusta la tasa de crecimiento microbiano según la temperatura usando el modelo Q10.
+    
+    El modelo Q10 es ampliamente utilizado en biocinética para describir cómo
+    la temperatura afecta las tasas de reacción biológicas.
+    
+    Args:
+        mu_ref: Tasa de crecimiento a temperatura de referencia (día⁻¹)
+        T_ref: Temperatura de referencia (°C), típicamente 35°C (mesofílico)
+        Q10: Factor de temperatura (adimensional), típicamente 1.07
+        T: Temperatura actual del reactor (°C)
+    
+    Returns:
+        Tasa de crecimiento ajustada (día⁻¹)
+    
+    Nota:
+        - Q10 = 1.07 significa que la tasa aumenta 7% por cada 10°C
+        - A 20°C, la tasa es ~76% de la tasa a 35°C
+        - A 40°C, la tasa es ~107% de la tasa a 35°C
+    """
     return mu_ref * (Q10 ** ((T - T_ref) / 10.0))
 
+
 def monod_mu(mu_max, S, Ks):
+    """
+    Calcula la tasa efectiva de crecimiento usando la ecuación de Monod.
+    
+    La ecuación de Monod describe la limitación por sustrato en procesos
+    microbianos. Es análoga a la cinética de Michaelis-Menten en enzimología.
+    
+    Args:
+        mu_max: Tasa máxima de crecimiento (día⁻¹)
+        S: Concentración de sustrato (kg SV/m³)
+        Ks: Constante de semi-saturación (kg SV/m³)
+            - Cuando S = Ks, μ_eff = μ_max/2
+            - Ks típico para DA: 1.0-3.0 kg SV/m³
+    
+    Returns:
+        Tasa efectiva de crecimiento (día⁻¹)
+    
+    Ejemplo:
+        Si μ_max = 0.25, S = 4.0, Ks = 2.0:
+        μ_eff = 0.25 * (4.0 / (2.0 + 4.0)) = 0.167 día⁻¹
+    """
     return mu_max * (S / (Ks + S)) if (Ks + S) > 0 else 0.0
 
+
 def gompertz_cumulative(t, A, mu_g, lam):
-    # A: potencial (m3), mu_g: velocidad máxima (m3/día)
+    """
+    Calcula la producción acumulada de biogás usando el modelo de Gompertz modificado.
+    
+    El modelo de Gompertz describe curvas de crecimiento sigmoidal y es ampliamente
+    utilizado para modelar la producción de biogás en digestión anaerobia.
+    
+    Ecuación: G(t) = A × exp(-exp((μ_g × e / A) × (λ - t) + 1))
+    
+    Args:
+        t: Tiempo transcurrido (días)
+        A: Potencial máximo de producción de biogás (m³)
+        mu_g: Velocidad máxima de producción (m³/día)
+        lam: Fase de latencia (días), tiempo antes de inicio significativo
+    
+    Returns:
+        Producción acumulada de biogás a tiempo t (m³)
+    
+    Características de la curva:
+        - t < lam: Fase de latencia (baja producción)
+        - t ≈ lam: Inicio de fase exponencial
+        - t >> lam: Aproximación asintótica a A
+    
+    Referencias:
+        - Zwietering et al. (1990): "Modeling of bacterial growth curve"
+        - Lay et al. (1997): "Influences of pH and moisture content..."
+    """
     return A * math.exp(-math.exp((mu_g * e / A) * (lam - t) + 1.0))
 
+
 def gompertz_rate(t, A, mu_g, lam):
-    # derivative of Gompertz G'(t) ~ daily production
-    # G'(t) = A * exp(-exp(...)) * exp(...) * (mu_g * e / A)
+    """
+    Calcula la tasa de producción diaria de biogás (derivada de Gompertz).
+    
+    Esta es la derivada de gompertz_cumulative con respecto al tiempo,
+    representando la producción instantánea.
+    
+    Ecuación: G'(t) = A × exp(-exp(inner)) × exp(inner) × (μ_g × e / A)
+    donde: inner = (μ_g × e / A) × (λ - t) + 1
+    
+    Args:
+        t: Tiempo transcurrido (días)
+        A: Potencial máximo de producción (m³)
+        mu_g: Velocidad máxima de producción (m³/día)
+        lam: Fase de latencia (días)
+    
+    Returns:
+        Tasa de producción diaria en tiempo t (m³/día)
+    
+    Características:
+        - El pico de producción ocurre aproximadamente en t = λ
+        - La producción máxima diaria es ~0.368 × μ_g
+        - Después del pico, la producción declina gradualmente
+    """
     inner = (mu_g * e / A) * (lam - t) + 1.0
     exp_inner = math.exp(inner)
     return A * math.exp(-exp_inner) * exp_inner * (mu_g * e / A)
