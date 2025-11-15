@@ -198,3 +198,89 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 #         },
 #     },
 # }
+
+# Cache configuration with Redis
+# Redis proporciona almacenamiento en caché de alto rendimiento para:
+# - Resultados de consultas frecuentes
+# - Sesiones de usuario
+# - Datos de sensores en tiempo real
+# - Métricas del dashboard
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': os.getenv('REDIS_URL', 'redis://redis:6379/1'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'biogestor',
+        'TIMEOUT': 300,  # 5 minutos por defecto
+    },
+    # Cache específico para sesiones (más corto)
+    'sessions': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': os.getenv('REDIS_URL', 'redis://redis:6379/2'),
+        'TIMEOUT': 1800,  # 30 minutos
+    },
+}
+
+# Channels Layer configuration para WebSockets
+# Usa Redis como backend para comunicación entre procesos
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [os.getenv('REDIS_URL', 'redis://redis:6379/0')],
+            "capacity": 1500,  # Número máximo de mensajes en cola
+            "expiry": 10,  # Tiempo de expiración de mensajes (segundos)
+        },
+    },
+}
+
+# Logging configuration
+# Configura logging para debugging y monitoreo de la aplicación
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+        'usuarios': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'dashboard': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

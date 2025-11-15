@@ -6,8 +6,11 @@ django-extensions
 django-cors-headers
 djangorestframework-simplejwt
 channels
+channels-redis
 daphne
 paho-mqtt
 openpyxl
 google-auth
 reportlab
+django-redis
+redis
