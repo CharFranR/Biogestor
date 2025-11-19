@@ -31,12 +31,10 @@ ALLOWED_HOSTS = [
     "localhost"
 ]
 
-
 # Application definition
-
 INSTALLED_APPS = [
+    "daphne",
     "corsheaders",
-
     'usuarios.apps.LoginConfig',
     'inventario',
     'recursos',
@@ -54,6 +52,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
 ]
 
+ASGI_APPLICATION = "backend.asgi.application"
+
 MIDDLEWARE = [
 
     'django.middleware.security.SecurityMiddleware',
@@ -66,22 +66,16 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
+ROOT_URLCONF = 'backend.urls'
 
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
-
-# REST_FRAMEWORK = {
-#     'DEFAULT_PERMISSION_CLASSES': [
-#         'rest_framework.permissions.IsAuthenticated',  # Por defecto requiere autenticación
-#     ],
-#     'DEFAULT_AUTHENTICATION_CLASSES': [
-#         'rest_framework.authentication.TokenAuthentication',
-#         'rest_framework.authentication.SessionAuthentication',
-#     ],
-# }
 
 SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
@@ -127,7 +121,7 @@ DATABASES = {
         'USER': os.getenv("POSTGRES_USER"),
         'PASSWORD': os.getenv("POSTGRES_PASSWORD"),
         'HOST': 'db',
-        'PORT': '5432',
+        'PORT': 5432,
     }
 }
 
@@ -178,23 +172,13 @@ STATIC_URL = "/static/"
 # STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-# storages
-# STORAGES = {
-#     "staticfiles": {
-#         "BACKEND": "django.core.files.storage.FileSystemStorage",
-#         "OPTIONS": {
-#             "location": STATIC_ROOT,
-#         }
-#     },
-#     "default": {
-#         "BACKEND": "storages.backends.s3.S3Storage",
-#         "OPTIONS": {
-#             "bucket_name": os.getenv('AWS_STORAGE_BUCKET_NAME'),
-
-#             "region_name": os.getenv('AWS_S3_REGION_NAME'),
-#             "access_key": os.getenv('AWS_ACCESS_KEY_ID'),
-#             "secret_key": os.getenv('AWS_SECRET_ACCESS_KEY'),
-
-#         },
-#     },
-# }
+# Cache de backend con redir
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://redis:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
