@@ -35,23 +35,20 @@ ALLOWED_HOSTS = [
 INSTALLED_APPS = [
     "daphne",
     "corsheaders",
-    'usuarios.apps.LoginConfig',
+    'rest_framework.authtoken',
+    'usuarios',
     'inventario',
     'dashboard',
     'biocalculadora',
     'rest_framework',
-    'channels',
-    'django_extensions',
+    'rest_framework_simplejwt',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework_simplejwt.token_blacklist',
 ]
-
-ASGI_APPLICATION = "backend.asgi.application"
 
 MIDDLEWARE = [
 
@@ -65,7 +62,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'backend.urls'
+ROOT_URLCONF = 'BGProject.urls'
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (

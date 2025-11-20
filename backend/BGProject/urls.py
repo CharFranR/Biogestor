@@ -19,12 +19,11 @@ def healthz(_request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('usuarios.urls')),
-    path('',include('inventario.urls')),
-    path('',include('recursos.urls')),
-    path('', include('biocalculadora.urls')),
-    path('api/dashboard/', include('dashboard.urls')),
-    path('healthz', healthz),
+    path('api/', include('usuarios.urls')),
+    path('api/',include('inventario.urls')),
+    path('api/', include('biocalculadora.urls')),
+    path('api/', include('dashboard.urls')),
+    # path('healthz', healthz),
 ]
 
 if settings.DEBUG:

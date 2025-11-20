@@ -1,12 +1,12 @@
 services:
   backend:
-    context: ./backend
-    dockerfile: Dockerfile
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: drf_backend
     command: >
-      sh -c "python manage.py makemigrations && python manage.py migrate &&
-      daphne -b 0.0.0.0 -p 8000 backend.asgi:aplication"
-    volumnes:
+      sh -c "python manage.py makemigrations && python manage.py migrate && daphne -b 0.0.0.0 -p 8000 BGProject.asgi:application"
+    volumes:
       - ./backend:/app
     ports:
       - "8000:8000"
@@ -15,7 +15,7 @@ services:
     depends_on:
       - db
       - redis
-    enviroment:
+    environment:
       - DJANGO_DEBUG=True
       - PYTHONUNBUFFERED=1
 
@@ -24,7 +24,7 @@ services:
     container_name: nginx
     ports:
       - "8080:80"
-    volumnes:
+    volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./backend/staticfiles:/static
     depends_on:
@@ -34,19 +34,19 @@ services:
     image: postgres:16
     container_name: postgres_db
     restart: always
-    enviroment:
+    environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: appdb
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
 
-    redis:
-      image: redis:7-alpine
-      container_name: redis
-      restart: always
-      volumes:
-        - redis_data_dev:/data
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: always
+    volumes:
+      - redis_data_dev:/data
 
   mosquitto:
     image: eclipse-mosquitto:2
@@ -62,11 +62,11 @@ services:
     build:
       context: ./frontend/react-app
     ports:
-      - "8080:80"
+      - "8090:90"
     depends_on:
       - backend
 
-volumnes:
+volumes:
   postgres_data_dev:
   redis_data_dev:
   pgdata:
