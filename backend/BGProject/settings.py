@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     "corsheaders",
     'usuarios.apps.LoginConfig',
     'inventario',
-    'recursos',
     'dashboard',
     'biocalculadora',
     'rest_framework',
