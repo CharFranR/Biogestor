@@ -7,4 +7,7 @@ router = DefaultRouter()
 router.register(r'items', itemsViewSet, basename='items')
 router.register(r'place', placesViewSet, basename='place')
 
-urlpatterns = router.urls
+
+urlpatterns = [
+    path('',include(router.urls)),
+]

@@ -4,6 +4,9 @@ from rest_framework.response import Response
 from .models import items, place
 from .serializers import itemsSerializer, placeSerializer
 from rest_framework.decorators import action
+from django.utils import timezone
+from django.http import HttpResponse
+
 
 from io import BytesIO
 from reportlab.pdfgen import canvas
@@ -22,13 +25,16 @@ class placesViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def generate_report(self, request, pk=None):
         
+        date = timezone.now()
+
         try:
-            items_report(self)
+            buffer = items_report(pk)
+            response = HttpResponse(buffer, content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="reporte_inventario.pdf"'
+            return response
 
         except Exception as e:
-            return Response ({"error": e})
-
-       
+            return Response ({"error": str(e)}, status=500)
 
 def items_report (select_place):
     # Generar reportes por area del cidtea
