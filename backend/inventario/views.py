@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import items, place
 from .serializers import itemsSerializer, placeSerializer
+from rest_framework.decorators import action
 
 from io import BytesIO
 from reportlab.pdfgen import canvas
@@ -18,6 +19,16 @@ class placesViewSet(viewsets.ModelViewSet):
     queryset = place.objects.all()
     serializer_class = placeSerializer
 
+    @action(detail=True, methods=['put'])
+    def generate_report(self, request, pk=None):
+        
+        try:
+            items_report(self)
+
+        except Exception as e:
+            return Response ({"error": e})
+
+       
 
 def items_report (select_place):
     # Generar reportes por area del cidtea
@@ -36,4 +47,18 @@ def items_report (select_place):
     c.drawString(50, 765, "Información confidencial")
     c.line(50, 760, 500, 760)
 
-    return 0
+     # Encabezados de la tabla
+    y = 740
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y, "Nombre")
+    c.drawString(100, y, "Cantidad")
+    y -= 20
+    c.line(50, y + 12, 500, y + 12)
+
+    for i in item:
+        c.drawString(50, y, f"{i.name}")
+        c.drawString(100, y, f"{i.quantity}")
+
+    c.save()
+    buffer.seek(0)
+    return buffer

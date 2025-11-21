@@ -1,10 +1,13 @@
 from rest_framework import serializers
 from .models import items, place
 
-class itemsSerializer(serializers.ModelSerializer):
-    model = items
-    fields = ['id','name','quantity','area']
-
 class placeSerializer(serializers.ModelSerializer):
-    model = place
-    field = ['name']
+    class Meta:
+        model = place
+        fields = ['id','name']
+
+class itemsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = items
+        fields = ['id','name','quantity','place']
