@@ -31,27 +31,23 @@ ALLOWED_HOSTS = [
     "localhost"
 ]
 
-
 # Application definition
-
 INSTALLED_APPS = [
+    "daphne",
     "corsheaders",
-
-    'usuarios.apps.LoginConfig',
+    'rest_framework.authtoken',
+    'usuarios',
     'inventario',
-    'recursos',
     'dashboard',
     'biocalculadora',
     'rest_framework',
-    'channels',
-    'django_extensions',
+    'rest_framework_simplejwt',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
@@ -66,22 +62,16 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
+ROOT_URLCONF = 'BGProject.urls'
 
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
-
-# REST_FRAMEWORK = {
-#     'DEFAULT_PERMISSION_CLASSES': [
-#         'rest_framework.permissions.IsAuthenticated',  # Por defecto requiere autenticación
-#     ],
-#     'DEFAULT_AUTHENTICATION_CLASSES': [
-#         'rest_framework.authentication.TokenAuthentication',
-#         'rest_framework.authentication.SessionAuthentication',
-#     ],
-# }
 
 SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
@@ -94,6 +84,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8080",
+]
 
 ROOT_URLCONF = 'BGProject.urls'
 
@@ -127,7 +120,7 @@ DATABASES = {
         'USER': os.getenv("POSTGRES_USER"),
         'PASSWORD': os.getenv("POSTGRES_PASSWORD"),
         'HOST': 'db',
-        'PORT': '5432',
+        'PORT': 5432,
     }
 }
 
@@ -178,23 +171,13 @@ STATIC_URL = "/static/"
 # STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-# storages
-# STORAGES = {
-#     "staticfiles": {
-#         "BACKEND": "django.core.files.storage.FileSystemStorage",
-#         "OPTIONS": {
-#             "location": STATIC_ROOT,
-#         }
-#     },
-#     "default": {
-#         "BACKEND": "storages.backends.s3.S3Storage",
-#         "OPTIONS": {
-#             "bucket_name": os.getenv('AWS_STORAGE_BUCKET_NAME'),
-
-#             "region_name": os.getenv('AWS_S3_REGION_NAME'),
-#             "access_key": os.getenv('AWS_ACCESS_KEY_ID'),
-#             "secret_key": os.getenv('AWS_SECRET_ACCESS_KEY'),
-
-#         },
-#     },
-# }
+# Cache de backend con redir
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://redis:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}

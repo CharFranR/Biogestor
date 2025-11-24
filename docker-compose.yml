@@ -1,26 +1,52 @@
-
 services:
-  db:
-    image: postgres:15
-    restart: always
-    env_file:
-      - ./.env
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
   backend:
     build:
       context: ./backend
+      dockerfile: Dockerfile
+    container_name: drf_backend
+    command: >
+      sh -c "python manage.py makemigrations && python manage.py migrate && daphne -b 0.0.0.0 -p 8000 BGProject.asgi:application"
     volumes:
       - ./backend:/app
     ports:
       - "8000:8000"
     env_file:
-      - ./.env
+      - ./backend/.env
     depends_on:
       - db
+      - redis
+    environment:
+      - DJANGO_DEBUG=True
+      - PYTHONUNBUFFERED=1
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./backend/staticfiles:/static
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:16
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: appdb
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: always
+    volumes:
+      - redis_data_dev:/data
 
   mosquitto:
     image: eclipse-mosquitto:2
@@ -36,11 +62,13 @@ services:
     build:
       context: ./frontend/react-app
     ports:
-      - "8080:80"
+      - "8090:90"
     depends_on:
       - backend
 
 volumes:
+  postgres_data_dev:
+  redis_data_dev:
   pgdata:
   mosquitto_data:
   mosquitto_log:

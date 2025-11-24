@@ -9,5 +9,6 @@ channels
 daphne
 paho-mqtt
 openpyxl
-google-auth
 reportlab
+django-redis
+channels_redis
