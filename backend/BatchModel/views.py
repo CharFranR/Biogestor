@@ -3,7 +3,7 @@ from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import BasicParams
-from .serializers import BasicParamsSerializer, BathModelSerializer
+from .serializers import BasicParamsSerializer, BatchModelSerializer
 from .mathModel import simulation
 
 class BasicParamsViewSet(viewsets.ModelViewSet):
@@ -37,6 +37,6 @@ class mathModelAPI (APIView):
             "cumulative_production": data[7],
         }
 
-        serializer = BathModelSerializer(data_dict)
+        serializer = BatchModelSerializer(data_dict)
 
         return Response(serializer.data)
