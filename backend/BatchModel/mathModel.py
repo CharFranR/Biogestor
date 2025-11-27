@@ -1,5 +1,4 @@
 from . models import BasicParams
-# Calculate total solids
 def get_total_solids(basic_params, filling_mass, filling_moisture):
   if filling_moisture != 0:
     total_solids = (filling_mass * (1-(filling_moisture/100)))
@@ -49,6 +48,13 @@ def get_cumulative_gompertz(specific_mu, delay_time, potencial_production, time,
   y = potencial_production * e ** (-b * e ** (-c * time))
   return y
 
+
+def get_derivative_gompertz(specific_mu, delay_time, potencial_production, time, e):
+    c = (specific_mu * e) / potencial_production
+    b = e ** ((delay_time * c) + 1)
+    derivative = potencial_production * b * c * (e ** (-c * time)) * (e ** (-b * (e ** (-c * time))) )
+    return derivative
+
 def simulation (basic_params, filling_mass, filling_moisture, temperature, 
                 added_watter, approx_density, delay_time):
   e = 2.718281828459045
@@ -64,6 +70,7 @@ def simulation (basic_params, filling_mass, filling_moisture, temperature,
 
   t_concentration = initial_concentration
   cumulative_production = []
+  derivative_production = []
 
   if filling_moisture != 0:
     date_period = int(3200/filling_moisture)
@@ -79,9 +86,13 @@ def simulation (basic_params, filling_mass, filling_moisture, temperature,
     t_cumulative_production = get_cumulative_gompertz(t_specific_mu, delay_time, potencial_production, i, e)
     cumulative_production.append(t_cumulative_production)
 
+    # get derivative production (daily)
+    t_derivative = get_derivative_gompertz(t_specific_mu, delay_time, potencial_production, i, e)
+    derivative_production.append(t_derivative)
+
     # get new concentration
     t_concentration = t_concentration - t_cumulative_production
 
-    data = total_solids, total_volatile_solids, potencial_production, max_mu, solvent_volume, initial_concentration, specific_mu, cumulative_production
+    data = total_solids, total_volatile_solids, potencial_production, max_mu, solvent_volume, initial_concentration, specific_mu, cumulative_production, derivative_production
 
   return data

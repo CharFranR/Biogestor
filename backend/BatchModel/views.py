@@ -35,6 +35,7 @@ class mathModelAPI (APIView):
             "initial_concentration": round(data[5],3),                      # type: ignore
             "specific_mu": round(data[6],3),                                # type: ignore
             "cumulative_production": [round(x, 3) for x in data[7]],        # type: ignore
+            "derivative_production": [round(x, 3) for x in data[8]],        # type: ignore
         }
 
         serializer = BatchModelSerializer(data_dict)

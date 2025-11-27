@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import BasicParams
 
 class BasicParamsSerializer(serializers.ModelSerializer):
-    class Meta: 
+    class Meta:
         model = BasicParams
         fields = ['id', 'supplyName', 'TS', 'VSTS', 'potencial_production']
 
@@ -15,3 +15,4 @@ class BatchModelSerializer(serializers.Serializer):
     initial_concentration = serializers.FloatField()
     specific_mu = serializers.FloatField()
     cumulative_production = serializers.ListField(child=serializers.FloatField())
+    derivative_production = serializers.ListField(child=serializers.FloatField())
