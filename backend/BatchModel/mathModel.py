@@ -50,7 +50,7 @@ def get_cumulative_gompertz(specific_mu, delay_time, potencial_production, time,
   return y
 
 def simulation (basic_params, filling_mass, filling_moisture, temperature, 
-                added_watter, approx_density, delay_time, date_period):
+                added_watter, approx_density, delay_time):
   e = 2.718281828459045
 
   # get basic data
@@ -64,6 +64,11 @@ def simulation (basic_params, filling_mass, filling_moisture, temperature,
 
   t_concentration = initial_concentration
   cumulative_production = []
+
+  if filling_moisture != 0:
+    date_period = int(3200/filling_moisture)
+  else:
+    date_period = 40
 
   # get data along time
   for i in range (1, date_period + 1):
