@@ -21,9 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('usuarios.urls')),
     path('api/',include('inventario.urls')),
-    path('api/', include('biocalculadora.urls')),
     path('api/', include('dashboard.urls')),
-    # path('healthz', healthz),
 ]
 
 if settings.DEBUG:
