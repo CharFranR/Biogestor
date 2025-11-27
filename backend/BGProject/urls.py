@@ -21,10 +21,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('usuarios.urls')),
     path('api/',include('inventario.urls')),
-    path('api/', include('biocalculadora.urls')),
     path('api/', include('dashboard.urls')),
-    # path('healthz', healthz),
-]
+    path('api/', include('BatchModel.urls')),
+]   
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

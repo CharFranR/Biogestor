@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+import secrets
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -21,10 +22,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+# Load from env; if missing, fall back to a generated key for local dev.
+_env_secret = os.getenv('DJANGO_SECRET_KEY')
+if _env_secret and _env_secret.strip():
+    SECRET_KEY = _env_secret
+else:
+    # Generated once per process; suitable for local development only.
+    SECRET_KEY = secrets.token_urlsafe(64)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', True)
+# Cast env to boolean safely; default True for local dev.
+_env_debug = os.getenv('DEBUG', 'true').lower()
+DEBUG = _env_debug in ('1', 'true', 'yes', 'on')
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
@@ -39,7 +48,7 @@ INSTALLED_APPS = [
     'usuarios',
     'inventario',
     'dashboard',
-    'biocalculadora',
+    'BatchModel',
     'rest_framework',
     'rest_framework_simplejwt',
     'django.contrib.admin',
