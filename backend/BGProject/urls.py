@@ -22,7 +22,8 @@ urlpatterns = [
     path('api/', include('usuarios.urls')),
     path('api/',include('inventario.urls')),
     path('api/', include('dashboard.urls')),
-]
+    path('api', include('BatchModel.urls')),
+]   
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
