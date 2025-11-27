@@ -12,3 +12,6 @@ openpyxl
 reportlab
 django-redis
 channels_redis
+numpy
+pandas
+matplotlib
