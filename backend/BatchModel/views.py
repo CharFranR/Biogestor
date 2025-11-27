@@ -27,14 +27,14 @@ class mathModelAPI (APIView):
                            added_watter, approx_density, delay_time)
         
         data_dict = {
-            "total_solids": data[0],
-            "total_volatile_solids": data[1],
-            "potencial_production": data[2],
-            "max_mu": data[3],
-            "solvent_volume": data[4],
-            "initial_concentration": data[5],
-            "specific_mu": data[6],
-            "cumulative_production": data[7],
+            "total_solids": round(data[0],3),                               # type: ignore
+            "total_volatile_solids": round(data[1],3),                      # type: ignore
+            "potencial_production": round(data[2],3),                       # type: ignore
+            "max_mu": round(data[3],3),                                     # type: ignore
+            "solvent_volume": round(data[4],3),                             # type: ignore
+            "initial_concentration": round(data[5],3),                      # type: ignore
+            "specific_mu": round(data[6],3),                                # type: ignore
+            "cumulative_production": [round(x, 3) for x in data[7]],        # type: ignore
         }
 
         serializer = BatchModelSerializer(data_dict)

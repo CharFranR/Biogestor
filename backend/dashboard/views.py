@@ -12,7 +12,6 @@ from rest_framework.decorators import api_view
 from django.core.files.base import ContentFile
 from .models import FillingStage, SensorReading, Report, ActuatorCommand, Alert, CalibrationRecord, PracticeSession
 from .serializers import FillingStageSerializer, ReportSerializer, ActuatorCommandSerializer, AlertSerializer, CalibrationRecordSerializer, PracticeSessionSerializer
-from biocalculadora.calculators import estimate_timeseries_for_material
 from datetime import datetime, timedelta
 from django.utils import timezone
 import pandas as pd
@@ -191,7 +190,6 @@ from rest_framework.decorators import api_view
 from django.http import HttpResponse
 from django.core.files.base import ContentFile
 from .models import FillingStage, SensorReading, Report
-from biocalculadora.calculators import estimate_timeseries_for_material
 from datetime import datetime, timedelta
 import pandas as pd
 import io

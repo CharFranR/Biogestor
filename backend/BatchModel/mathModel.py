@@ -84,4 +84,4 @@ def simulation (basic_params, filling_mass, filling_moisture, temperature,
 
     data = total_solids, total_volatile_solids, potencial_production, max_mu, solvent_volume, initial_concentration, specific_mu, cumulative_production
 
-    return data
+  return data
