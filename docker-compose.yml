@@ -82,6 +82,24 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=BGProject.settings
 
+  data_saver:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: data_saver
+    command: >
+      sh -c "python manage.py start_data_saver"
+    volumes:
+      - ./backend:/app
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - db
+      - redis
+      - backend
+    environment:
+      - DJANGO_SETTINGS_MODULE=BGProject.settings
+
 volumes:
   postgres_data_dev:
   redis_data_dev:
