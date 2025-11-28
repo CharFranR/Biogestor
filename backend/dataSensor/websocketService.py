@@ -9,10 +9,10 @@ redis_client = redis.Redis(host='redis', port=6379, db=0)
 
 def send_sendors_data ():
         data = {}
-        for key in redis_client.keys():
+        for key in redis_client.keys(): # type: ignore
             values = redis_client.lrange(key, 0, -1)
-            data[key.decode()] = [v.decode() for v in values]
-        async_to_sync(channel_layer.group_send)(
+            data[key.decode()] = [v.decode() for v in values] # type: ignore
+        async_to_sync(channel_layer.group_send)( # type: ignore
             "sensors_data",
             {
                 "type": "send_data",

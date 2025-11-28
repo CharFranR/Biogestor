@@ -39,5 +39,6 @@ mqttc = mqtt.Client()
 mqttc.on_connect = on_connect
 mqttc.on_message = on_message
 
-mqttc.connect("mqtt.biogestor.cidtea", 1883, 60)
-mqttc.loop_forever()
+if __name__ == "__main__":
+    mqttc.connect("mqtt.biogestor.cidtea", 1883, 60)
+    mqttc.loop_forever()
