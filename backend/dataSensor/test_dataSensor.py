@@ -136,7 +136,6 @@ class WebSocketServiceMultiSensorsTest(TestCase):
 
 		ws.channel_layer.group_send = group_send_mock
 
-		asyncio.get_event_loop().run_until_complete(group_send_mock("sensors_data", {"type":"send_data","text":"{}"}))
 		# Execute
 		send_sensors_data()
 
