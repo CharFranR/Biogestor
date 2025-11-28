@@ -33,10 +33,11 @@ def save_data_process():
     while True:
         Sensors = Sensor.objects.all()
         for sensor in Sensors:
-            value = redis_client.get(sensor.name)
-            if value:
+            key = f"Biogestor/{sensor.mqtt_code}"
+            last_value = redis_client.lindex(key, -1)
+            if last_value:
                 try:
-                    float_val = float(value.decode('utf-8')) # type: ignore                    
+                    float_val = float(last_value.decode('utf-8'))  # type: ignore
                     Data.objects.create(sensor=sensor, value=float_val)
                 except ValueError:
                     pass

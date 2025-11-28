@@ -20,11 +20,9 @@ def connect_sensor(client, mqtt_code):
     client.subscribe(conection)
 
 def on_connect(client, userdata, flags, reason_code, properties):
-
-    sensors = mqtt_code()
-
-    for sensor in sensors:
-        connect_sensor(client, sensor["mqtt_code"])
+    # Suscribir cada sensor por su mqtt_code
+    for code in mqtt_code():
+        connect_sensor(client, code)
 
 def on_message(client, userdata, msg):
     print(msg.topic+" "+str(msg.payload))
