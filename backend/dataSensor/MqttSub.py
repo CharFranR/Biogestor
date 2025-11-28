@@ -1,6 +1,7 @@
 import paho.mqtt.client as mqtt
 import redis
 from .models import Sensor
+from .websocketService import send_sendors_data
 
 redis_client = redis.Redis(host='redis', port=6379, db=0)
 
@@ -31,6 +32,8 @@ def on_message(client, userdata, msg):
     # Guardar el mensaje en Redis usando el topic como clave
     redis_client.rpush(msg.topic, msg.payload)
     redis_client.ltrim(msg.topic, -30, -1)
+
+    send_sendors_data ()
 
 mqttc = mqtt.Client()
 mqttc.on_connect = on_connect

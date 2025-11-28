@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import MeasuredVariableViewSet, SensorViewSet, DataViewSet
 
 router = DefaultRouter()
-router.register(r'measured-variables', MeasuredVariableViewSet)
+router.register(r'measuredVariables', MeasuredVariableViewSet)
 router.register(r'sensors', SensorViewSet)
 router.register(r'sensor-data', DataViewSet)
 

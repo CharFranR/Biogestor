@@ -7,13 +7,14 @@ class MeasuredVariableSerializer(serializers.ModelSerializer):
         fields = ('id', 'name')
 
 class SensorSerializer(serializers.ModelSerializer):
-    measured_variable = MeasuredVariableSerializer (read_onlye = True)
+    measured_variable = MeasuredVariableSerializer (read_only = True)
     class Meta:
         model = Sensor
         field = ('id', 'measured_variable', 'suscription_date', 
                  'min_range', 'max_range', 'hysteresis', 'accuracy', 'precision')
 
 class DataSerializer(serializers.ModelSerializer):
+    sensor = SensorSerializer (read_only = True)
     class Meta:
         model = Data
         fields = ('id', 'sensor', 'value', 'date')
