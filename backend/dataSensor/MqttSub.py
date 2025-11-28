@@ -1,5 +1,8 @@
 import paho.mqtt.client as mqtt
+import redis
 from .models import Sensor
+
+redis_client = redis.Redis(host='redis', port=6379, db=0)
 
 def mqtt_code():
     mqtt_code = []
@@ -24,6 +27,9 @@ def connect_sensor(client, topic, mqtt_code):
 
 def on_message(client, userdata, msg):
     print(msg.topic+" "+str(msg.payload))
+    
+    # Guardar el mensaje en Redis usando el topic como clave
+    redis_client.set(msg.topic, msg.payload)
 
 mqttc = mqtt.Client()
 mqttc.on_connect = on_connect

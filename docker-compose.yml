@@ -57,7 +57,7 @@ services:
     volumes:
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
-      - ./deploy/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
 
   frontend:
     build:
@@ -66,6 +66,21 @@ services:
       - "8090:90"
     depends_on:
       - backend
+
+  mqtt_subscriber:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mqtt_subscriber
+    command: >
+      sh -c "python backend/dataSensor/MqttSub.py"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - backend
+      - mosquitto
+    environment:
+      - DJANGO_SETTINGS_MODULE=BGProject.settings
 
 volumes:
   postgres_data_dev:
