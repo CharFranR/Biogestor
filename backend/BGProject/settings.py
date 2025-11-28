@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'dashboard',
     'BatchModel',
     'calibrations',
+    'dataSensor',
+    'channels',
     'rest_framework',
     'rest_framework_simplejwt',
     'django.contrib.admin',
@@ -190,4 +192,13 @@ CACHES = {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     }
+}
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis", 6379)],
+        },
+    },
 }

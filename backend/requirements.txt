@@ -10,6 +10,7 @@ daphne
 paho-mqtt
 openpyxl
 reportlab
+redis
 django-redis
 channels_redis
 numpy
