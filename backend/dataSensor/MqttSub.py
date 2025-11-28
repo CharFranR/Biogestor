@@ -33,7 +33,10 @@ def on_message(client, userdata, msg):
 
     send_sensors_data ()
 
-mqttc = mqtt.Client()
+try:
+    mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)  # type: ignore[attr-defined]
+except Exception:
+    mqttc = mqtt.Client()
 mqttc.on_connect = on_connect
 mqttc.on_message = on_message
 

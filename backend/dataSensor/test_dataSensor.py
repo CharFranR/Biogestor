@@ -79,3 +79,72 @@ class WebSocketServiceTest(TestCase):
 			return None
 		mock_channel_layer.return_value.group_send = async_mock
 		send_sensors_data()
+
+class SaveDataProcessTest(TestCase):
+	@patch('dataSensor.views.redis_client')
+	def test_save_data_iteration(self, mock_redis_client):
+		from dataSensor.views import save_data_iteration
+		from datetime import date
+		mv = MeasuredVariable.objects.create(name="Temp")
+		s1 = Sensor.objects.create(name="S1", mqtt_code="sensorA", measured_variable=mv,
+								   suscription_date=date.today(), min_range=0.0, max_range=100.0)
+		s2 = Sensor.objects.create(name="S2", mqtt_code="sensorB", measured_variable=mv,
+								   suscription_date=date.today(), min_range=0.0, max_range=100.0)
+
+		def lindex_side_effect(key, idx):
+			if key == f"Biogestor/{s1.mqtt_code}":
+				return b"12.5"
+			if key == f"Biogestor/{s2.mqtt_code}":
+				return b"8.75"
+			return None
+
+		mock_redis_client.lindex.side_effect = lindex_side_effect
+
+		save_data_iteration()
+
+		self.assertEqual(Data.objects.filter(sensor=s1).count(), 1)
+		self.assertEqual(Data.objects.filter(sensor=s2).count(), 1)
+		self.assertAlmostEqual(Data.objects.filter(sensor=s1).first().value, 12.5)
+		self.assertAlmostEqual(Data.objects.filter(sensor=s2).first().value, 8.75)
+
+class WebSocketServiceMultiSensorsTest(TestCase):
+	@patch('dataSensor.websocketService.redis_client')
+	def test_send_sendors_data_multiple(self, mock_redis_client):
+		from dataSensor.websocketService import send_sensors_data
+		import asyncio, json
+
+		# Mock redis client with two sensors
+		mock_redis_client.keys.return_value = [b'Biogestor/sensorA', b'Biogestor/sensorB']
+
+		def lrange_side_effect(key, start, end):
+			if key == b'Biogestor/sensorA':
+				return [b'10.1', b'10.2']
+			if key == b'Biogestor/sensorB':
+				return [b'20.1', b'20.2']
+			return []
+
+		mock_redis_client.lrange.side_effect = lrange_side_effect
+
+		# Capture group_send payload by patching channel_layer directly
+		from dataSensor import websocketService as ws
+
+		captured = {}
+		async def group_send_mock(group, message):
+			captured['group'] = group
+			captured['message'] = message
+			return None
+
+		ws.channel_layer.group_send = group_send_mock
+
+		asyncio.get_event_loop().run_until_complete(group_send_mock("sensors_data", {"type":"send_data","text":"{}"}))
+		# Execute
+		send_sensors_data()
+
+		self.assertEqual(captured.get('group'), 'sensors_data')
+		payload = captured.get('message', {})
+		self.assertEqual(payload.get('type'), 'send_data')
+		data = json.loads(payload.get('text', '{}'))
+		self.assertIn('Biogestor/sensorA', data)
+		self.assertIn('Biogestor/sensorB', data)
+		self.assertEqual(data['Biogestor/sensorA'], ['10.1', '10.2'])
+		self.assertEqual(data['Biogestor/sensorB'], ['20.1', '20.2'])

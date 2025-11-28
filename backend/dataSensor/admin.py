@@ -1,3 +1,6 @@
 from django.contrib import admin
+from .models import MeasuredVariable, Sensor, Data
 
-# Register your models here.
+admin.site.register(MeasuredVariable)
+admin.site.register(Sensor)
+admin.site.register(Data)
