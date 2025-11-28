@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'inventario',
     'dashboard',
     'BatchModel',
+    'calibrations',
     'rest_framework',
     'rest_framework_simplejwt',
     'django.contrib.admin',
