@@ -13,3 +13,8 @@ class Sensor (models.Model):
     hysteresis = models.FloatField(null = True, blank = True) #%
     accuracy = models.FloatField(null = True, blank = True) #%
     precision = models.FloatField(null = True, blank = True) #%
+
+class Data (models.Model):
+    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
+    value = models.FloatField()
+    date = models.DateTimeField(auto_now_add=True)

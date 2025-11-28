@@ -24,6 +24,7 @@ urlpatterns = [
     path('api/', include('dashboard.urls')),
     path('api/', include('BatchModel.urls')),
     path('api/', include('calibrations.urls')),
+    path('api/', include('dataSensor.urls')),
 ]   
 
 if settings.DEBUG:

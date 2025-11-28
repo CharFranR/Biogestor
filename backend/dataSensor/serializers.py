@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import MeasuredVariable, Sensor
+from .models import MeasuredVariable, Sensor, Data
 
 class MeasuredVariableSerializer(serializers.ModelSerializer):
     class Meta:
@@ -12,3 +12,8 @@ class SensorSerializer(serializers.ModelSerializer):
         model = Sensor
         field = ('id', 'measured_variable', 'suscription_date', 
                  'min_range', 'max_range', 'hysteresis', 'accuracy', 'precision')
+
+class DataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Data
+        fields = ('id', 'sensor', 'value', 'date')
