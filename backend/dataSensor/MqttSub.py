@@ -1,7 +1,7 @@
 import paho.mqtt.client as mqtt
 import redis
 from .models import Sensor
-from .websocketService import send_sendors_data
+from .websocketService import send_sensors_data
 
 redis_client = redis.Redis(host='redis', port=6379, db=0)
 
@@ -31,7 +31,7 @@ def on_message(client, userdata, msg):
     redis_client.rpush(msg.topic, msg.payload)
     redis_client.ltrim(msg.topic, -30, -1)
 
-    send_sendors_data ()
+    send_sensors_data ()
 
 mqttc = mqtt.Client()
 mqttc.on_connect = on_connect

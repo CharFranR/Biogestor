@@ -53,7 +53,7 @@ class RedisCacheTest(TestCase):
 		self.assertEqual([v.decode() for v in values], ['12.3', '13.4'])
 
 class MQTTProcessingTest(TestCase):
-	@patch('dataSensor.websocketService.send_sendors_data')
+	@patch('dataSensor.websocketService.send_sensors_data')
 	@patch('redis.Redis')
 	def test_on_message_processing(self, mock_redis, mock_send):
 		from .MqttSub import on_message
@@ -69,8 +69,8 @@ class MQTTProcessingTest(TestCase):
 class WebSocketServiceTest(TestCase):
 	@patch('channels.layers.get_channel_layer')
 	@patch('redis.Redis')
-	def test_send_sendors_data(self, mock_redis, mock_channel_layer):
-		from dataSensor.websocketService import send_sendors_data
+	def test_send_sensors_data(self, mock_redis, mock_channel_layer):
+		from dataSensor.websocketService import send_sensors_data
 		import asyncio
 		mock_instance = mock_redis.return_value
 		mock_instance.keys.return_value = [b'Biogestor/sensorA']
@@ -78,4 +78,4 @@ class WebSocketServiceTest(TestCase):
 		async def async_mock(*args, **kwargs):
 			return None
 		mock_channel_layer.return_value.group_send = async_mock
-		send_sendors_data()
+		send_sensors_data()
