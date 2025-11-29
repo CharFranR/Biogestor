@@ -1,4 +1,5 @@
 from django.db import models
+from Fill.models import Fill
 
 class MeasuredVariable (models.Model):
     name = models.CharField(max_length=200)
@@ -18,3 +19,4 @@ class Data (models.Model):
     sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
     value = models.FloatField()
     date = models.DateTimeField(auto_now_add=True)
+    fill = models.ForeignKey(Fill, on_delete = models.CASCADE, null = True, blank = True)

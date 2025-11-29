@@ -21,10 +21,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('usuarios.urls')),
     path('api/',include('inventario.urls')),
-    path('api/', include('dashboard.urls')),
     path('api/', include('BatchModel.urls')),
     path('api/', include('calibrations.urls')),
     path('api/', include('dataSensor.urls')),
+    path('api/', include('Fill.urls')),
 ]   
 
 if settings.DEBUG:
