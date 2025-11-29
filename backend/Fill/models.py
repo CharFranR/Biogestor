@@ -22,4 +22,4 @@ class Fill (models.Model):
     type_material = models.FloatField()
     filling_moisture = models.FloatField()
     delay_time = models.FloatField()
-    Prediction = models.ForeignKey(FillPrediction, on_delete = models.CASCADE, null = True, blank= True)
+    prediction = models.ForeignKey(FillPrediction, on_delete = models.CASCADE, null = True, blank= True)
