@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'usuarios',
     'inventario',
-    'dashboard',
     'BatchModel',
     'calibrations',
     'dataSensor',
