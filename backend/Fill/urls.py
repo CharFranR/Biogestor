@@ -5,6 +5,6 @@ from .views import FillViewSet
 router = DefaultRouter()
 router.register(r'Fill', FillViewSet, basename = 'Fill')
 
-url_pattern = [
+urlpatterns = [
     path('', include(router.urls)),
 ]
