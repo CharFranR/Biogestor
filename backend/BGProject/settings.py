@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'BatchModel',
     'calibrations',
     'dataSensor',
+    'Fill',
     'channels',
     'rest_framework',
     'rest_framework_simplejwt',
