@@ -97,20 +97,6 @@ class ActuatorCommand(models.Model):
 		return f"{self.created_at:%Y-%m-%d %H:%M} {self.device}:{self.target} {self.action} ({self.status})"
 
 
-class Alert(models.Model):
-	LEVEL_CHOICES = [
-		("INFO", "Info"),
-		("WARN", "Advertencia"),
-		("CRIT", "Crítico"),
-	]
-	created_at = models.DateTimeField(auto_now_add=True)
-	level = models.CharField(max_length=5, choices=LEVEL_CHOICES)
-	message = models.CharField(max_length=255)
-	details = models.JSONField(null=True, blank=True)
-	resolved = models.BooleanField(default=False)
-
-	def __str__(self) -> str:
-		return f"[{self.level}] {self.message} - {'Resuelta' if self.resolved else 'Activa'}"
 
 
 class CalibrationRecord(models.Model):

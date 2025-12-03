@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Report, FillingStage, SensorReading, ActuatorCommand, Alert, CalibrationRecord, PracticeSession
+from .models import Report, FillingStage, SensorReading, ActuatorCommand, CalibrationRecord, PracticeSession
 
 class ReportSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.get_full_name', read_only=True)
@@ -24,10 +24,6 @@ class ActuatorCommandSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class AlertSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Alert
-        fields = '__all__'
 
 
 class CalibrationRecordSerializer(serializers.ModelSerializer):

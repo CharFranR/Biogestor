@@ -4,7 +4,7 @@ import os
 from channels.generic.websocket import AsyncWebsocketConsumer
 import paho.mqtt.client as mqtt
 from django.utils import timezone
-from .models import FillingStage, SensorReading, Alert
+from .models import FillingStage, SensorReading
 
 class MQTTWebSocketConsumer(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
@@ -95,29 +95,13 @@ class MQTTWebSocketConsumer(AsyncWebsocketConsumer):
                     )
 
                     # Reglas simples de alerta (umbrales)
-                    alerts_to_emit = []
-                    try:
-                        if 'presion' in data:
-                            p = float(data['presion'])
-                            if p < 990 or p > 1015:
-                                a = Alert.objects.create(level='WARN', message='Presión fuera de rango', details={'presion': p})
-                                alerts_to_emit.append({'id': a.id, 'message': a.message, 'level': a.level})
-                        if 'temperatura' in data:
-                            t = float(data['temperatura'])
-                            if t < 20 or t > 45:
-                                a = Alert.objects.create(level='WARN', message='Temperatura fuera de rango', details={'temperatura': t})
-                                alerts_to_emit.append({'id': a.id, 'message': a.message, 'level': a.level})
-                    except Exception as _:
-                        pass
+                    # ALERTAS ELIMINADAS
             except Exception as db_err:
                 print(f"Error guardando lectura de sensor: {db_err}")
 
             print(f"PASO 5: Enviando via WebSocket: {filtered_data}")
             
             asyncio.run_coroutine_threadsafe(self._send_to_websocket(filtered_data), self._event_loop)
-            # Emitir alertas si existen
-            for a in alerts_to_emit:
-                asyncio.run_coroutine_threadsafe(self._send_to_websocket({'type': 'alert', **a}), self._event_loop)
             
         except Exception as e:
             print(f"Error: {e}")

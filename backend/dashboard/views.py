@@ -10,8 +10,8 @@ from usuarios.permisos import PuedeVerDashboard
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.decorators import api_view
 from django.core.files.base import ContentFile
-from .models import FillingStage, SensorReading, Report, ActuatorCommand, Alert, CalibrationRecord, PracticeSession
-from .serializers import FillingStageSerializer, ReportSerializer, ActuatorCommandSerializer, AlertSerializer, CalibrationRecordSerializer, PracticeSessionSerializer
+from .models import FillingStage, SensorReading, Report, ActuatorCommand, CalibrationRecord, PracticeSession
+from .serializers import FillingStageSerializer, ReportSerializer, ActuatorCommandSerializer, CalibrationRecordSerializer, PracticeSessionSerializer
 from biocalculadora.calculators import estimate_timeseries_for_material
 from datetime import datetime, timedelta
 from django.utils import timezone
@@ -1042,31 +1042,6 @@ class ActuatorCommandAPIView(APIView):
             return Response({"detail": f"Error enviando comando: {e}"}, status=500)
 
 
-class AlertsAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        alerts = Alert.objects.filter(resolved=False).order_by('-created_at')[:100]
-        return Response(AlertSerializer(alerts, many=True).data)
-
-    def post(self, request):
-        serializer = AlertSerializer(data=request.data)
-        if serializer.is_valid():
-            alert = serializer.save()
-            return Response(AlertSerializer(alert).data, status=201)
-        return Response(serializer.errors, status=400)
-
-
-class ResolveAlertAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, alert_id: int):
-        alert = Alert.objects.filter(id=alert_id).first()
-        if not alert:
-            return Response({"detail": "Alerta no encontrada"}, status=404)
-        alert.resolved = True
-        alert.save()
-        return Response({"detail": "Alerta resuelta"})
 
 
 class CalibrationAPIView(APIView):
