@@ -328,6 +328,8 @@ body {
 
 .code-block code {
     color: var(--code-text);
+    background: transparent;
+    padding: 0;
 }
 
 /* Diagramas */
@@ -564,6 +566,81 @@ code {
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     font-size: 0.9em;
     color: var(--primary-dark);
+}
+
+/* Override for code inside dark blocks */
+.code-block code,
+.architecture-diagram code,
+.file-tree code,
+.er-diagram code {
+    background: transparent;
+    padding: 0;
+    color: var(--code-text);
+}
+
+/* Endpoint Box */
+.endpoint-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f8f9fa;
+    padding: 16px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin: 16px 0;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.endpoint-box code {
+    font-size: 1rem;
+    color: var(--text-primary);
+    background: transparent;
+    padding: 0;
+}
+
+/* Info Box */
+.info-box {
+    background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+    padding: 16px 20px;
+    border-radius: 8px;
+    border-left: 4px solid var(--accent-color);
+    margin: 16px 0;
+    color: #6d4c00;
+}
+
+.info-box strong {
+    color: #e65100;
+}
+
+/* Warning Box */
+.warning-box {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    padding: 16px 20px;
+    border-radius: 8px;
+    border-left: 4px solid #c62828;
+    margin: 16px 0;
+    color: #b71c1c;
+}
+
+/* Success Box */
+.success-box {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    padding: 16px 20px;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+    margin: 16px 0;
+    color: #1b5e20;
+}
+
+/* Tech Header */
+.tech-header {
+    background: linear-gradient(135deg, var(--code-background) 0%, #37474f 100%);
+}
+
+.tech-badges .badge {
+    background: rgba(174, 213, 129, 0.2);
+    color: var(--code-text);
+    border: 1px solid rgba(174, 213, 129, 0.3);
 }
 
 /* Print styles */
