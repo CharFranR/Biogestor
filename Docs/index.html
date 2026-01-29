@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentación Backend - Sistema Biogestor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h1>🌿 Biogestor</h1>
+            <p>Documentación Backend</p>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="#descripcion" class="active">Descripción General</a></li>
+            <li><a href="#arquitectura">Arquitectura</a></li>
+            <li><a href="#estructura">Estructura del Proyecto</a></li>
+            <li><a href="#instalacion">Instalación</a></li>
+            <li><a href="#configuracion">Configuración</a></li>
+            <li class="nav-section">Aplicaciones</li>
+            <li><a href="#batchmodel">BatchModel</a></li>
+            <li><a href="#calibrations">Calibrations</a></li>
+            <li><a href="#datasensor">DataSensor</a></li>
+            <li><a href="#fill">Fill</a></li>
+            <li><a href="#inventario">Inventario</a></li>
+            <li class="nav-section">Integraciones</li>
+            <li><a href="#api">API REST</a></li>
+            <li><a href="#websockets">WebSockets</a></li>
+            <li><a href="#mqtt">MQTT</a></li>
+            <li class="nav-section">Operaciones</li>
+            <li><a href="#database">Base de Datos</a></li>
+            <li><a href="#testing">Testing</a></li>
+            <li><a href="#despliegue">Despliegue</a></li>
+        </ul>
+    </nav>
+
+    <main class="content">
+        <header class="page-header">
+            <h1>Backend del Sistema Biogestor</h1>
+            <p class="subtitle">API REST para la gestión y monitoreo de biodigestores</p>
+            <div class="tech-badges">
+                <span class="badge">Django</span>
+                <span class="badge">DRF</span>
+                <span class="badge">Channels</span>
+                <span class="badge">MQTT</span>
+                <span class="badge">PostgreSQL</span>
+                <span class="badge">Redis</span>
+            </div>
+        </header>
+
+        <section id="descripcion" class="section">
+            <h2>📋 Descripción General</h2>
+            <p>El backend del Sistema Biogestor es una aplicación Django que proporciona:</p>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔌</div>
+                    <h3>APIs REST</h3>
+                    <p>Gestión de datos de sensores, llenados, calibraciones e inventario</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Modelo Matemático</h3>
+                    <p>Predicción de producción de biogás basado en el modelo de Gompertz</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📡</div>
+                    <h3>Integración MQTT</h3>
+                    <p>Recepción de datos en tiempo real desde sensores IoT</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>WebSockets</h3>
+                    <p>Transmisión de datos en tiempo real al frontend</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📄</div>
+                    <h3>Reportes PDF</h3>
+                    <p>Generación automática de reportes de inventario</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="arquitectura" class="section">
+            <h2>🏗️ Arquitectura del Sistema</h2>
+            <div class="architecture-diagram">
+                <pre>
+┌─────────────────┐     ┌──────────────────────────────────────────────┐
+│                 │     │            Backend Django                     │
+│   Frontend      │◄───►│  ┌─────────────┐    ┌──────────────────────┐ │
+│   React App     │     │  │  REST API   │    │  WebSocket Server    │ │
+│                 │     │  │  (DRF)      │    │  (Channels)          │ │
+└─────────────────┘     │  └─────────────┘    └──────────────────────┘ │
+                        │         │                    ▲                │
+                        │         ▼                    │                │
+                        │  ┌─────────────┐    ┌──────────────────────┐ │
+                        │  │  PostgreSQL │    │       Redis          │ │
+                        │  │  (Database) │    │   (Cache/Channel)    │ │
+                        │  └─────────────┘    └──────────────────────┘ │
+                        └──────────────────────────────────────────────┘
+                                                       ▲
+                                                       │
+                        ┌──────────────────────────────┴───────────────┐
+                        │               MQTT Broker (Mosquitto)         │
+                        └───────────────────┬──────────────────────────┘
+                                            │
+                        ┌───────────────────▼──────────────────────────┐
+                        │    Sensores IoT (Temperatura, pH, Presión)   │
+                        └──────────────────────────────────────────────┘
+                </pre>
+            </div>
+        </section>
+
+        <section id="estructura" class="section">
+            <h2>📁 Estructura del Proyecto</h2>
+            <div class="file-tree">
+                <pre>
+backend/
+├── manage.py                 # Punto de entrada Django
+├── requirements.txt          # Dependencias Python
+├── Dockerfile               # Configuración Docker
+├── BGProject/               # Configuración principal
+│   ├── settings.py          # Configuración Django
+│   ├── urls.py              # URLs principales
+│   ├── asgi.py              # Configuración ASGI
+│   └── wsgi.py              # Configuración WSGI
+├── BatchModel/              # Modelo matemático
+├── calibrations/            # Calibraciones de sensores
+├── dataSensor/              # Gestión de sensores
+├── Fill/                    # Llenados del biodigestor
+└── inventario/              # Gestión de inventario
+                </pre>
+            </div>
+        </section>
+
+        <section id="instalacion" class="section">
+            <h2>⚙️ Requisitos e Instalación</h2>
+            
+            <h3>Requisitos Previos</h3>
+            <ul class="requirements-list">
+                <li>Python 3.10+</li>
+                <li>PostgreSQL 16</li>
+                <li>Redis 7+</li>
+                <li>Docker y Docker Compose (recomendado)</li>
+            </ul>
+
+            <h3>Dependencias Principales</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Dependencia</th>
+                        <th>Descripción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Django</td><td>Framework web principal</td></tr>
+                    <tr><td>djangorestframework</td><td>API REST</td></tr>
+                    <tr><td>channels</td><td>WebSockets</td></tr>
+                    <tr><td>daphne</td><td>Servidor ASGI</td></tr>
+                    <tr><td>paho-mqtt</td><td>Cliente MQTT</td></tr>
+                    <tr><td>psycopg2-binary</td><td>Driver PostgreSQL</td></tr>
+                    <tr><td>redis</td><td>Cliente Redis</td></tr>
+                    <tr><td>reportlab</td><td>Generación de PDFs</td></tr>
+                    <tr><td>pandas / numpy</td><td>Análisis de datos</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Instalación con Docker (Recomendado)</h3>
+            <div class="code-block">
+                <pre><code># Desde la raíz del proyecto
+docker-compose up -d</code></pre>
+            </div>
+
+            <h3>Instalación Manual</h3>
+            <div class="code-block">
+                <pre><code># Crear entorno virtual
+python -m venv venv
+.\venv\Scripts\activate   # Windows
+
+# Instalar dependencias
+pip install -r requirements.txt
+
+# Ejecutar migraciones
+python manage.py migrate
+
+# Iniciar servidor
+daphne -b 0.0.0.0 -p 8000 BGProject.asgi:application</code></pre>
+            </div>
+        </section>
+
+        <section id="configuracion" class="section">
+            <h2>🔧 Configuración</h2>
+            
+            <h3>Variables de Entorno</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Variable</th>
+                        <th>Descripción</th>
+                        <th>Valor por defecto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>DJANGO_SECRET_KEY</td><td>Clave secreta Django</td><td>Auto-generada</td></tr>
+                    <tr><td>DEBUG</td><td>Modo debug</td><td>true</td></tr>
+                    <tr><td>DATABASE_URL</td><td>URL PostgreSQL</td><td>-</td></tr>
+                    <tr><td>REDIS_URL</td><td>URL Redis</td><td>redis://redis:6379/0</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="batchmodel" class="section">
+            <h2>📊 BatchModel</h2>
+            <p>Aplicación para el modelo matemático de predicción de producción de biogás.</p>
+            
+            <h3>Modelo de Datos: BasicParams</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>supplyName</td><td>CharField(200)</td><td>Nombre del material</td></tr>
+                    <tr><td>TS</td><td>FloatField</td><td>Sólidos totales (%)</td></tr>
+                    <tr><td>VSTS</td><td>FloatField</td><td>Sólidos volátiles / Sólidos totales</td></tr>
+                    <tr><td>potencial_production</td><td>FloatField</td><td>Producción potencial (m³/kg VS)</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Modelo Matemático de Gompertz</h3>
+            <div class="formula-box">
+                <p><strong>Y(t) = P × exp(-b × exp(-c × t))</strong></p>
+                <ul>
+                    <li><code>Y(t)</code> = Producción acumulada en tiempo t</li>
+                    <li><code>P</code> = Producción potencial máxima</li>
+                    <li><code>b</code> = Factor de forma</li>
+                    <li><code>c</code> = Tasa de crecimiento específica</li>
+                </ul>
+            </div>
+
+            <h3>Endpoints</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Método</th><th>Endpoint</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="method get">GET</td><td>/api/BasicParams/</td><td>Lista parámetros</td></tr>
+                    <tr><td class="method post">POST</td><td>/api/BasicParams/</td><td>Crea parámetro</td></tr>
+                    <tr><td class="method post">POST</td><td>/api/calculation/</td><td>Ejecuta simulación</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Ejemplo de Simulación</h3>
+            <div class="code-block">
+                <pre><code>curl -X POST http://localhost:8000/api/calculation/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "filling_mass": 100,
+    "approx_density": 1.05,
+    "added_watter": 50,
+    "type_material": "Estiércol bovino",
+    "filling_moisture": 80,
+    "delay_time": 5,
+    "temperature": 35
+  }'</code></pre>
+            </div>
+        </section>
+
+        <section id="calibrations" class="section">
+            <h2>🔧 Calibrations</h2>
+            <p>Gestión de calibraciones de sensores.</p>
+            
+            <h3>Modelo de Datos: Calibration</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>userId</td><td>FloatField</td><td>ID del usuario</td></tr>
+                    <tr><td>sensorId</td><td>FloatField</td><td>ID del sensor</td></tr>
+                    <tr><td>date</td><td>DateField</td><td>Fecha de calibración</td></tr>
+                    <tr><td>params</td><td>CharField(200)</td><td>Parámetros</td></tr>
+                    <tr><td>note</td><td>TextField</td><td>Notas</td></tr>
+                    <tr><td>result</td><td>TextField</td><td>Resultado</td></tr>
+                    <tr><td>previous_calibration</td><td>DateField</td><td>Calibración anterior</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Endpoints</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Método</th><th>Endpoint</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="method get">GET</td><td>/api/calibration/</td><td>Lista calibraciones</td></tr>
+                    <tr><td class="method post">POST</td><td>/api/calibration/</td><td>Crea calibración</td></tr>
+                    <tr><td class="method get">GET</td><td>/api/calibration/{id}/</td><td>Obtiene por ID</td></tr>
+                    <tr><td class="method put">PUT</td><td>/api/calibration/{id}/</td><td>Actualiza</td></tr>
+                    <tr><td class="method delete">DELETE</td><td>/api/calibration/{id}/</td><td>Elimina</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="datasensor" class="section">
+            <h2>📡 DataSensor</h2>
+            <p>Gestión de sensores y datos en tiempo real.</p>
+            
+            <h3>Modelos de Datos</h3>
+            
+            <h4>MeasuredVariable</h4>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>name</td><td>CharField(200)</td><td>Nombre de la variable</td></tr>
+                </tbody>
+            </table>
+
+            <h4>Sensor</h4>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>name</td><td>CharField(200)</td><td>Nombre del sensor</td></tr>
+                    <tr><td>mqtt_code</td><td>CharField(20)</td><td>Código MQTT</td></tr>
+                    <tr><td>measured_variable</td><td>FK(MeasuredVariable)</td><td>Variable medida</td></tr>
+                    <tr><td>suscription_date</td><td>DateField</td><td>Fecha de registro</td></tr>
+                    <tr><td>min_range</td><td>FloatField</td><td>Rango mínimo</td></tr>
+                    <tr><td>max_range</td><td>FloatField</td><td>Rango máximo</td></tr>
+                    <tr><td>hysteresis</td><td>FloatField</td><td>Histéresis (%)</td></tr>
+                    <tr><td>accuracy</td><td>FloatField</td><td>Exactitud (%)</td></tr>
+                    <tr><td>precision</td><td>FloatField</td><td>Precisión (%)</td></tr>
+                </tbody>
+            </table>
+
+            <h4>Data</h4>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>sensor</td><td>FK(Sensor)</td><td>Sensor</td></tr>
+                    <tr><td>value</td><td>FloatField</td><td>Valor medido</td></tr>
+                    <tr><td>date</td><td>DateTimeField</td><td>Timestamp</td></tr>
+                    <tr><td>fill</td><td>FK(Fill)</td><td>Llenado asociado</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Flujo de Datos MQTT</h3>
+            <div class="flow-diagram">
+                <div class="flow-step">Sensor IoT</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">MQTT Broker</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">MqttSub.py</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">Redis</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">WebSocket</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">Frontend</div>
+            </div>
+            <p class="flow-note">Los datos se persisten en PostgreSQL cada 5 segundos.</p>
+
+            <h3>Endpoints</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Método</th><th>Endpoint</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="method get">GET</td><td>/api/measuredVariables/</td><td>Lista variables</td></tr>
+                    <tr><td class="method get">GET</td><td>/api/sensors/</td><td>Lista sensores</td></tr>
+                    <tr><td class="method post">POST</td><td>/api/sensors/</td><td>Crea sensor</td></tr>
+                    <tr><td class="method get">GET</td><td>/api/sensor-data/</td><td>Lista lecturas</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="fill" class="section">
+            <h2>🥛 Fill</h2>
+            <p>Gestión de llenados del biodigestor.</p>
+            
+            <h3>Modelo de Datos: FillPrediction</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>total_solids</td><td>FloatField</td><td>Sólidos totales</td></tr>
+                    <tr><td>total_volatile_solids</td><td>FloatField</td><td>Sólidos volátiles</td></tr>
+                    <tr><td>potencial_production</td><td>FloatField</td><td>Producción potencial (m³)</td></tr>
+                    <tr><td>max_mu</td><td>FloatField</td><td>Tasa de crecimiento máxima</td></tr>
+                    <tr><td>cumulative_production</td><td>JSONField</td><td>Producción acumulada</td></tr>
+                    <tr><td>derivative_production</td><td>JSONField</td><td>Producción diaria</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Modelo de Datos: Fill</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>first_day</td><td>DateField</td><td>Fecha de inicio</td></tr>
+                    <tr><td>last_day</td><td>DateField</td><td>Fecha de fin</td></tr>
+                    <tr><td>people_involved</td><td>TextField</td><td>Personal involucrado</td></tr>
+                    <tr><td>filling_mass</td><td>FloatField</td><td>Masa de material (kg)</td></tr>
+                    <tr><td>approx_density</td><td>FloatField</td><td>Densidad (kg/L)</td></tr>
+                    <tr><td>added_watter</td><td>FloatField</td><td>Agua añadida (L)</td></tr>
+                    <tr><td>type_material</td><td>FloatField</td><td>Tipo de material</td></tr>
+                    <tr><td>filling_moisture</td><td>FloatField</td><td>Humedad (%)</td></tr>
+                    <tr><td>delay_time</td><td>FloatField</td><td>Tiempo de retardo</td></tr>
+                    <tr><td>prediction</td><td>FK(FillPrediction)</td><td>Predicción</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Endpoints</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Método</th><th>Endpoint</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="method get">GET</td><td>/api/Fill/</td><td>Lista llenados</td></tr>
+                    <tr><td class="method post">POST</td><td>/api/Fill/</td><td>Crea llenado (genera predicción)</td></tr>
+                    <tr><td class="method post">POST</td><td>/api/Fill/{id}/end_fill/</td><td>Finaliza llenado</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="inventario" class="section">
+            <h2>📦 Inventario</h2>
+            <p>Gestión de inventario de materiales y equipos.</p>
+            
+            <h3>Modelos de Datos</h3>
+            
+            <h4>place</h4>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>name</td><td>CharField(200)</td><td>Nombre del área</td></tr>
+                </tbody>
+            </table>
+
+            <h4>items</h4>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>name</td><td>CharField(200)</td><td>Nombre del ítem</td></tr>
+                    <tr><td>quantity</td><td>IntegerField</td><td>Cantidad</td></tr>
+                    <tr><td>place</td><td>FK(place)</td><td>Ubicación</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Endpoints</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Método</th><th>Endpoint</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="method get">GET</td><td>/api/items/</td><td>Lista ítems</td></tr>
+                    <tr><td class="method post">POST</td><td>/api/items/</td><td>Crea ítem</td></tr>
+                    <tr><td class="method get">GET</td><td>/api/place/</td><td>Lista ubicaciones</td></tr>
+                    <tr><td class="method post">POST</td><td>/api/place/{id}/generate_report/</td><td>Genera PDF</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="api" class="section">
+            <h2>🔌 API REST - Resumen de Endpoints</h2>
+            <table class="data-table full-width">
+                <thead>
+                    <tr><th>App</th><th>Endpoint</th><th>Métodos</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>BatchModel</td><td>/api/BasicParams/</td><td>GET, POST</td><td>Parámetros de materiales</td></tr>
+                    <tr><td>BatchModel</td><td>/api/calculation/</td><td>POST</td><td>Simulación de producción</td></tr>
+                    <tr><td>calibrations</td><td>/api/calibration/</td><td>CRUD</td><td>Calibraciones</td></tr>
+                    <tr><td>dataSensor</td><td>/api/measuredVariables/</td><td>GET, POST</td><td>Variables medidas</td></tr>
+                    <tr><td>dataSensor</td><td>/api/sensors/</td><td>CRUD</td><td>Sensores</td></tr>
+                    <tr><td>dataSensor</td><td>/api/sensor-data/</td><td>GET, POST</td><td>Lecturas</td></tr>
+                    <tr><td>Fill</td><td>/api/Fill/</td><td>CRUD</td><td>Llenados</td></tr>
+                    <tr><td>Fill</td><td>/api/Fill/{id}/end_fill/</td><td>POST</td><td>Finalizar llenado</td></tr>
+                    <tr><td>inventario</td><td>/api/items/</td><td>CRUD</td><td>Ítems</td></tr>
+                    <tr><td>inventario</td><td>/api/place/</td><td>CRUD</td><td>Ubicaciones</td></tr>
+                    <tr><td>inventario</td><td>/api/place/{id}/generate_report/</td><td>POST</td><td>Generar PDF</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="websockets" class="section">
+            <h2>⚡ WebSockets</h2>
+            
+            <h3>Conexión</h3>
+            <div class="code-block">
+                <pre><code>const ws = new WebSocket('ws://localhost:8000/ws/dataSensor/');
+
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  console.log('Datos de sensores:', data);
+};</code></pre>
+            </div>
+
+            <h3>Formato de Mensajes</h3>
+            <div class="code-block">
+                <pre><code>{
+  "Biogestor/temp01": ["25.5", "25.6", "25.4"],
+  "Biogestor/ph01": ["7.2", "7.1", "7.2"],
+  "Biogestor/pres01": ["1.02", "1.03", "1.02"]
+}</code></pre>
+            </div>
+            <p>Cada clave corresponde al topic MQTT del sensor. El valor es un array con las últimas 30 lecturas.</p>
+        </section>
+
+        <section id="mqtt" class="section">
+            <h2>📡 MQTT</h2>
+            
+            <h3>Configuración</h3>
+            <p>El broker Mosquitto está configurado en el puerto <code>1883</code>.</p>
+
+            <h3>Topics</h3>
+            <p>Los sensores publican en el formato: <code>Biogestor/{mqtt_code}</code></p>
+            <ul>
+                <li><code>Biogestor/temp01</code> - Sensor de temperatura 1</li>
+                <li><code>Biogestor/ph01</code> - Sensor de pH 1</li>
+                <li><code>Biogestor/pres01</code> - Sensor de presión 1</li>
+            </ul>
+
+            <h3>Simulador</h3>
+            <div class="code-block">
+                <pre><code>python scripts/mqtt_simulator.py</code></pre>
+            </div>
+        </section>
+
+        <section id="database" class="section">
+            <h2>🗄️ Base de Datos</h2>
+            
+            <h3>Diagrama ER</h3>
+            <div class="er-diagram">
+                <pre>
+┌─────────────────┐     ┌─────────────────┐
+│   BasicParams   │     │ MeasuredVariable│
+├─────────────────┤     ├─────────────────┤
+│ id              │     │ id              │
+│ supplyName      │     │ name            │
+│ TS, VSTS        │     └────────┬────────┘
+│ potencial_prod  │              │
+└─────────────────┘              │
+                        ┌────────▼────────┐     ┌─────────────────┐
+┌─────────────────┐     │     Sensor      │     │   Calibration   │
+│ FillPrediction  │     ├─────────────────┤     ├─────────────────┤
+├─────────────────┤     │ id, name        │     │ userId, sensorId│
+│ total_solids    │     │ mqtt_code       │     │ date, params    │
+│ potencial_prod  │     │ measured_var FK │     │ note, result    │
+│ cumulative_prod │     │ min/max_range   │     └─────────────────┘
+└────────┬────────┘     └────────┬────────┘
+         │                       │
+┌────────▼────────┐     ┌────────▼────────┐
+│      Fill       │◄────│      Data       │
+├─────────────────┤     ├─────────────────┤
+│ first_day       │     │ sensor FK       │
+│ filling_mass    │     │ value, date     │
+│ prediction FK   │     │ fill FK         │
+└─────────────────┘     └─────────────────┘
+
+┌─────────────────┐     ┌─────────────────┐
+│      place      │◄────│      items      │
+├─────────────────┤     ├─────────────────┤
+│ id, name        │     │ name, quantity  │
+└─────────────────┘     │ place FK        │
+                        └─────────────────┘
+                </pre>
+            </div>
+        </section>
+
+        <section id="testing" class="section">
+            <h2>🧪 Testing</h2>
+            
+            <h3>Ejecutar Tests</h3>
+            <div class="code-block">
+                <pre><code># Todos los tests
+pytest
+
+# Tests de una app específica
+pytest BatchModel/
+pytest dataSensor/
+pytest Fill/
+
+# Con cobertura
+pytest --cov=.</code></pre>
+            </div>
+
+            <h3>Archivos de Test</h3>
+            <ul>
+                <li><code>BatchModel/test_BatchModel.py</code></li>
+                <li><code>calibrations/test_calibrations.py</code></li>
+                <li><code>dataSensor/test_dataSensor.py</code></li>
+                <li><code>Fill/test_Fill.py</code></li>
+                <li><code>inventario/tests.py</code></li>
+            </ul>
+        </section>
+
+        <section id="despliegue" class="section">
+            <h2>🚀 Despliegue</h2>
+            
+            <h3>Docker Compose</h3>
+            <div class="code-block">
+                <pre><code># Construir y levantar
+docker-compose up -d --build
+
+# Ver logs
+docker-compose logs -f backend
+
+# Parar servicios
+docker-compose down</code></pre>
+            </div>
+
+            <h3>Servicios Docker</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Servicio</th><th>Puerto</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>backend</td><td>8000</td><td>Django + Daphne</td></tr>
+                    <tr><td>db</td><td>5432</td><td>PostgreSQL</td></tr>
+                    <tr><td>redis</td><td>6379</td><td>Redis</td></tr>
+                    <tr><td>mosquitto</td><td>1883</td><td>MQTT Broker</td></tr>
+                    <tr><td>nginx</td><td>8080</td><td>Proxy reverso</td></tr>
+                    <tr><td>frontend</td><td>8090</td><td>React App</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Health Check</h3>
+            <div class="code-block">
+                <pre><code>curl http://localhost:8000/healthz/
+# {"status": "ok", "database": true}</code></pre>
+            </div>
+        </section>
+
+        <footer class="page-footer">
+            <p>Documentación del Sistema Biogestor - CIDTEA</p>
+            <p>Generada el 29 de enero de 2026</p>
+        </footer>
+    </main>
+
+    <script>
+        // Smooth scrolling for navigation
+        document.querySelectorAll('.nav-menu a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const target = document.querySelector(targetId);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+                // Update active class
+                document.querySelectorAll('.nav-menu a').forEach(a => a.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Highlight current section on scroll
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('.section');
+            let current = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (window.pageYOffset >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            document.querySelectorAll('.nav-menu a').forEach(a => {
+                a.classList.remove('active');
+                if (a.getAttribute('href') === `#${current}`) {
+                    a.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
