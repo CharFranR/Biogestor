@@ -20,7 +20,6 @@ def healthz(_request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('authentication.urls')),
-    path('api/', include('usuarios.urls')),
     path('api/',include('inventario.urls')),
     path('api/', include('BatchModel.urls')),
     path('api/', include('calibrations.urls')),
