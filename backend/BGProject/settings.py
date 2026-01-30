@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     "daphne",
     "corsheaders",
     'rest_framework.authtoken',
-    'usuarios',
+    'authentication',
     'inventario',
     'BatchModel',
     'calibrations',
