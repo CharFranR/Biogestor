@@ -125,6 +125,18 @@ backend/
 - `GET/POST/PUT/DELETE /api/place/` - CRUD ubicaciones
 - `POST /api/place/{id}/generate_report/` - Generar PDF
 
+### authentication
+- `POST /api/auth/register/` - Registrar usuario
+- `POST /api/auth/login/` - Iniciar sesión (JWT)
+- `POST /api/auth/refresh/` - Refrescar JWT
+- `POST /api/auth/logout/` - Cerrar sesión (blacklist refresh)
+- `GET /api/users/` - Listar usuarios aprobados (superusuario)
+- `GET /api/users/pending/` - Listar usuarios pendientes (superusuario)
+- `GET /api/users/me/` - Usuario actual
+- `POST /api/users/{id}/approve/` - Aprobar usuario (superusuario)
+- `GET/POST /api/users/{id}/permissions/` - Ver/actualizar permisos (superusuario para POST)
+- `POST /api/users/{id}/role/` - Cambiar rol (superusuario)
+
 ---
 
 ## 📊 Modelos de Datos Principales
@@ -234,6 +246,7 @@ pytest dataSensor/
 pytest Fill/
 pytest calibrations/
 pytest inventario/
+pytest authentication/
 
 # Con cobertura
 pytest --cov=.
