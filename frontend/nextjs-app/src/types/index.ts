@@ -220,18 +220,19 @@ export interface CalculationInput {
   filling_moisture: number;
   delay_time: number;
   temperature?: number;
-  simulation_days?: number;
+  days?: number;
 }
 
 export interface CalculationResult {
   total_solids: number;
   volatile_solids: number;
   potential_production: number;
+  total_production: number;
   max_mu: number;
   specific_mu: number;
   cumulative_production: number[];
   daily_production: number[];
-  days: number[];
+  days_array: number[];
 }
 
 // ============================================
