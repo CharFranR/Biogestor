@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -7,8 +6,9 @@ from django.utils import timezone
 from .models import Fill
 from .serializers import FillSerializer
 
-class FillViewSet(viewsets.ViewSet):
-    queryset = Fill.objects.all
+
+class FillViewSet(viewsets.ModelViewSet):
+    queryset = Fill.objects.all()
     serializer_class = FillSerializer
 
     @action(detail=True, methods=['post'])
