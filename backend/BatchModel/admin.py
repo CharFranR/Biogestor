@@ -1,3 +1,9 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import BasicParams
+
+
+@admin.register(BasicParams)
+class BasicParamsAdmin(admin.ModelAdmin):
+    list_display = ("supplyName", "TS", "VSTS", "potencial_production")
+    search_fields = ("supplyName",)
