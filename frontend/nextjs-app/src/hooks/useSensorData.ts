@@ -49,7 +49,9 @@ export function useSensorData(
       setSensorData((prevData) => {
         const newData = new Map(prevData);
 
-        Object.entries(message).forEach(([sensorCode, values]) => {
+        Object.entries(message).forEach(([rawKey, values]) => {
+          // Quitar prefijo 'Biogestor/' si existe
+          const sensorCode = rawKey.replace('Biogestor/', '');
           if (Array.isArray(values)) {
             const numericValues = values
               .map((v) => parseFloat(v))
