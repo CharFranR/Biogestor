@@ -56,12 +56,12 @@ export default function PerfilPage() {
             <p className="text-gray-500 mt-1">@{user.username}</p>
             <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-3">
               <Badge
-                variant={roleColors[user.perfil?.rol || "VISIT"]}
+                variant={roleColors[user.profile?.rol || "VISIT"]}
                 size="md"
               >
-                {roleLabels[user.perfil?.rol || "VISIT"]}
+                {roleLabels[user.profile?.rol || "VISIT"]}
               </Badge>
-              {user.perfil?.aprobado ? (
+              {user.profile?.aprobado ? (
                 <Badge variant="success" size="md">
                   Cuenta Aprobada
                 </Badge>
@@ -100,7 +100,7 @@ export default function PerfilPage() {
               <div>
                 <p className="text-xs text-gray-500">Rol</p>
                 <p className="font-medium text-gray-900">
-                  {roleLabels[user.perfil?.rol || "VISIT"]}
+                  {roleLabels[user.profile?.rol || "VISIT"]}
                 </p>
               </div>
             </div>
@@ -109,8 +109,8 @@ export default function PerfilPage() {
 
         <Card title="Permisos Asignados">
           <div className="space-y-2">
-            {user.perfil?.permisos ? (
-              Object.entries(user.perfil.permisos).map(([key, value]) => (
+            {user.profile?.permissions ? (
+              Object.entries(user.profile.permissions).map(([key, value]) => (
                 <div
                   key={key}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
@@ -136,21 +136,21 @@ export default function PerfilPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <StatCard
           title="Estado de Cuenta"
-          value={user.perfil?.aprobado ? "Activa" : "Pendiente"}
-          color={user.perfil?.aprobado ? "green" : "orange"}
+          value={user.profile?.aprobado ? "Activa" : "Pendiente"}
+          color={user.profile?.aprobado ? "green" : "orange"}
           icon={<FiShield className="w-6 h-6" />}
         />
         <StatCard
           title="Tipo de Usuario"
-          value={roleLabels[user.perfil?.rol || "VISIT"]}
+          value={roleLabels[user.profile?.rol || "VISIT"]}
           color="primary"
           icon={<FiUser className="w-6 h-6" />}
         />
         <StatCard
           title="Permisos Activos"
           value={
-            user.perfil?.permisos
-              ? Object.values(user.perfil.permisos).filter(Boolean).length
+            user.profile?.permissions
+              ? Object.values(user.profile.permissions).filter(Boolean).length
               : 0
           }
           color="secondary"

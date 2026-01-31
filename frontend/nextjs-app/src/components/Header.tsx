@@ -70,9 +70,9 @@ export function Header() {
               {user?.first_name} {user?.last_name}
             </p>
             <p className="text-xs text-gray-500">
-              {user?.perfil?.rol === "ADMIN"
+              {user?.profile?.rol === "ADMIN"
                 ? "Administrador"
-                : user?.perfil?.rol === "COLAB"
+                : user?.profile?.rol === "COLAB"
                 ? "Colaborador"
                 : "Visitante"}
             </p>

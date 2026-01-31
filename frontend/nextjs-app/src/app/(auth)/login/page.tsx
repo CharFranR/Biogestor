@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -11,7 +11,7 @@ import { Input } from "@/components/ui";
 import { authService } from "@/lib/auth";
 import type { LoginCredentials } from "@/types";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/sensores";
@@ -30,7 +30,7 @@ export default function LoginPage() {
     try {
       const response = await authService.login(data);
 
-      if (!response.user.perfil?.aprobado) {
+      if (!response.user.profile?.aprobado) {
         toast.error("Tu cuenta aún no ha sido aprobada por un administrador.");
         await authService.logout();
         return;
@@ -111,5 +111,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-10">Cargando...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

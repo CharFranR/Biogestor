@@ -8,24 +8,23 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
-  perfil: UserProfile;
+  profile: UserProfile;
 }
 
 export interface UserProfile {
   aprobado: boolean;
   rol?: "ADMIN" | "COLAB" | "VISIT";
-  permisos?: UserPermissions;
+  permissions?: UserPermissions;
 }
 
 export interface UserPermissions {
-  VerDashboard?: boolean;
-  GestionarSensores?: boolean;
-  GestionarCalibraciones?: boolean;
-  GestionarInventario?: boolean;
-  GestionarLlenados?: boolean;
-  VerCalculadora?: boolean;
-  AprobarUsuarios?: boolean;
-  GestionarPermisos?: boolean;
+  ApproveUsers?: boolean;
+  ViewReports?: boolean;
+  GenerateReports?: boolean;
+  ViewDashboard?: boolean;
+  ViewCalibrations?: boolean;
+  ViewInventory?: boolean;
+  ModifyInventory?: boolean;
   [key: string]: boolean | undefined;
 }
 
@@ -225,14 +224,14 @@ export interface CalculationInput {
 
 export interface CalculationResult {
   total_solids: number;
-  volatile_solids: number;
-  potential_production: number;
-  total_production: number;
+  total_volatile_solids: number;
+  potencial_production: number;
   max_mu: number;
+  solvent_volume: number;
+  initial_concentration: number;
   specific_mu: number;
   cumulative_production: number[];
-  daily_production: number[];
-  days_array: number[];
+  derivative_production: number[];
 }
 
 // ============================================

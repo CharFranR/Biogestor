@@ -10,7 +10,7 @@ import {
   FiPackage,
   FiDroplet,
   FiUsers,
-  FiCalculator,
+  FiCpu,
   FiUser,
   FiChevronLeft,
   FiChevronRight,
@@ -53,7 +53,7 @@ const navItems: NavItem[] = [
   {
     name: "Calculadora",
     href: "/calculadora",
-    icon: <FiCalculator className="w-5 h-5" />,
+    icon: <FiCpu className="w-5 h-5" />,
     permission: "VerCalculadora",
   },
   {
@@ -80,8 +80,8 @@ export function Sidebar() {
 
   const hasPermission = (permission?: string): boolean => {
     if (!permission) return true;
-    if (user?.perfil?.rol === "ADMIN") return true;
-    return user?.perfil?.permisos?.[permission] ?? false;
+    if (user?.profile?.rol === "ADMIN") return true;
+    return user?.profile?.permissions?.[permission] ?? false;
   };
 
   const filteredNavItems = navItems.filter((item) => hasPermission(item.permission));

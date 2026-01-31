@@ -19,9 +19,13 @@ class mathModelAPI (APIView):
         type_material = request.data['type_material']
         filling_moisture = request.data['filling_moisture']
         delay_time = request.data['delay_time']
-        temperature = request.data['temperature']
+        temperature = request.data.get('temperature', 35)  # Default temperature
 
-        basic_params = BasicParams.objects.get(supplyName = type_material)
+        # Search by ID if numeric, otherwise by name
+        if isinstance(type_material, int) or (isinstance(type_material, str) and type_material.isdigit()):
+            basic_params = BasicParams.objects.get(id=int(type_material))
+        else:
+            basic_params = BasicParams.objects.get(supplyName=type_material)
 
         data = simulation (basic_params, filling_mass, filling_moisture, temperature, 
                            added_watter, approx_density, delay_time)

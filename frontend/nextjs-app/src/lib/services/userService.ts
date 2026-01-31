@@ -10,14 +10,20 @@ const CURRENT_USER_KEY = "currentUser";
 // API Functions
 // ============================================
 
+interface UsersResponse {
+  total?: number;
+  total_pending?: number;
+  users: User[];
+}
+
 async function fetchApprovedUsers(): Promise<User[]> {
-  const response = await apiClient.get<User[]>("/api/users/");
-  return response.data;
+  const response = await apiClient.get<UsersResponse>("/api/users/");
+  return response.data.users || [];
 }
 
 async function fetchPendingUsers(): Promise<User[]> {
-  const response = await apiClient.get<User[]>("/api/users/pending/");
-  return response.data;
+  const response = await apiClient.get<UsersResponse>("/api/users/pending/");
+  return response.data.users || [];
 }
 
 async function fetchCurrentUser(): Promise<User> {
@@ -67,6 +73,8 @@ export function useApprovedUsers() {
     queryKey: [USERS_KEY],
     queryFn: fetchApprovedUsers,
     staleTime: 30 * 1000, // 30 seconds
+    retry: false, // Don't retry on auth errors
+    enabled: typeof window !== "undefined", // Only run on client
   });
 }
 
@@ -75,6 +83,8 @@ export function usePendingUsers() {
     queryKey: [PENDING_USERS_KEY],
     queryFn: fetchPendingUsers,
     staleTime: 30 * 1000,
+    retry: false, // Don't retry on auth errors
+    enabled: typeof window !== "undefined", // Only run on client
   });
 }
 

@@ -6,6 +6,7 @@ export interface CardProps {
   className?: string;
   title?: string;
   subtitle?: string;
+  icon?: ReactNode;
   headerAction?: ReactNode;
   noPadding?: boolean;
 }
@@ -15,6 +16,7 @@ export function Card({
   className,
   title,
   subtitle,
+  icon,
   headerAction,
   noPadding = false,
 }: CardProps) {
@@ -27,7 +29,8 @@ export function Card({
     >
       {(title || headerAction) && (
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <div>
+          <div className="flex items-center gap-2">
+            {icon && <span className="text-primary-400">{icon}</span>}
             {title && (
               <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
             )}

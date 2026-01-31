@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiCheck, FiX, FiUsers, FiUserCheck, FiShield } from "react-icons/fi";
 import toast from "react-hot-toast";
 import { Card, Button, Tabs, Table, Badge, Modal } from "@/components/ui";
@@ -32,8 +32,8 @@ const ROLE_OPTIONS = [
 ];
 
 export default function PermisosPage() {
-  const { data: approvedUsers = [], isLoading: loadingApproved } = useApprovedUsers();
-  const { data: pendingUsers = [], isLoading: loadingPending } = usePendingUsers();
+  const { data: approvedUsers = [], isLoading: loadingApproved, error: approvedError } = useApprovedUsers();
+  const { data: pendingUsers = [], isLoading: loadingPending, error: pendingError } = usePendingUsers();
 
   const approveUser = useApproveUser();
   const updatePermissions = useUpdateUserPermissions();
@@ -41,6 +41,25 @@ export default function PermisosPage() {
 
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
+
+  // Handle auth errors
+  if (approvedError || pendingError) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <FiUsers className="w-12 h-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Error al cargar usuarios
+            </h3>
+            <p className="text-gray-500">
+              No tienes permisos para ver esta sección o ha ocurrido un error.
+            </p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   const handleApproveUser = async (userId: number) => {
     try {
@@ -106,8 +125,8 @@ export default function PermisosPage() {
           VISIT: "default" as const,
         };
         return (
-          <Badge variant={roleColors[user.perfil?.rol || "VISIT"]}>
-            {roleLabels[user.perfil?.rol || "VISIT"]}
+          <Badge variant={roleColors[user.profile?.rol || "VISIT"]}>
+            {roleLabels[user.profile?.rol || "VISIT"]}
           </Badge>
         );
       },
@@ -199,14 +218,14 @@ function PermissionsModal({
 }: PermissionsModalProps) {
   const { data: permissions, isLoading } = useUserPermissions(user.id);
   const [localPermissions, setLocalPermissions] = useState<UserPermissions>({});
-  const [localRole, setLocalRole] = useState(user.perfil?.rol || "VISIT");
+  const [localRole, setLocalRole] = useState(user.profile?.rol || "VISIT");
 
   // Update local state when permissions are loaded
-  useState(() => {
+  useEffect(() => {
     if (permissions) {
       setLocalPermissions(permissions);
     }
-  });
+  }, [permissions]);
 
   const handleTogglePermission = (key: string) => {
     setLocalPermissions((prev) => ({
@@ -222,7 +241,7 @@ function PermissionsModal({
         permissions: localPermissions,
       });
 
-      if (localRole !== user.perfil?.rol) {
+      if (localRole !== user.profile?.rol) {
         await updateRole.mutateAsync({
           userId: user.id,
           role: localRole as "ADMIN" | "COLAB" | "VISIT",

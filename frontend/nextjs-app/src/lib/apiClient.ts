@@ -1,7 +1,11 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import Cookies from "js-cookie";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// En el navegador, usa URL relativa para que pase por nginx
+// En servidor (SSR), usa la URL del backend
+const API_URL = typeof window !== "undefined" 
+  ? "" // Relativo - usará el mismo origen (nginx)
+  : (process.env.NEXT_PUBLIC_API_URL || "http://backend:8000");
 
 export const apiClient = axios.create({
   baseURL: API_URL,

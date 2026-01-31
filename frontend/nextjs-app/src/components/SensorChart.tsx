@@ -105,7 +105,7 @@ export function SensorChart({
         cornerRadius: 8,
         displayColors: false,
         callbacks: {
-          label: (context) => `${context.parsed.y.toFixed(2)} ${unit}`,
+          label: (context) => `${context.parsed.y?.toFixed(2) ?? "--"} ${unit}`,
         },
       },
     },

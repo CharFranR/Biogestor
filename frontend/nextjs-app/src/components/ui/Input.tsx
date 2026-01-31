@@ -36,7 +36,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={clsx(
-              "block w-full rounded-lg border transition-colors",
+              "block w-full rounded-lg border transition-colors bg-white text-gray-900",
+              "placeholder:text-gray-400",
               "focus:outline-none focus:ring-2 focus:ring-offset-0",
               error
                 ? "border-red-300 focus:border-red-500 focus:ring-red-200"
@@ -90,7 +91,8 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           ref={ref}
           id={textareaId}
           className={clsx(
-            "block w-full rounded-lg border px-4 py-2.5 text-sm transition-colors",
+            "block w-full rounded-lg border px-4 py-2.5 text-sm transition-colors bg-white text-gray-900",
+            "placeholder:text-gray-400",
             "focus:outline-none focus:ring-2 focus:ring-offset-0",
             error
               ? "border-red-300 focus:border-red-500 focus:ring-red-200"
@@ -141,7 +143,8 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           id={selectId}
           className={clsx(
-            "block w-full rounded-lg border px-4 py-2.5 text-sm transition-colors",
+            "block w-full rounded-lg border px-4 py-2.5 text-sm transition-colors bg-white text-gray-900",
+            "[&>option]:bg-white [&>option]:text-gray-900",
             "focus:outline-none focus:ring-2 focus:ring-offset-0",
             error
               ? "border-red-300 focus:border-red-500 focus:ring-red-200"
@@ -152,12 +155,12 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
           {...props}
         >
           {placeholder && (
-            <option value="" disabled>
+            <option value="" disabled className="text-gray-500 bg-white">
               {placeholder}
             </option>
           )}
           {options.map((option) => (
-            <option key={option.value} value={option.value}>
+            <option key={option.value} value={option.value} className="text-gray-900 bg-white">
               {option.label}
             </option>
           ))}

@@ -41,10 +41,13 @@ ChartJS.register(
 );
 
 export default function CalculadoraPage() {
-  const { data: materials = [], isLoading: loadingMaterials } = useBasicParams();
+  const { data: materials = [], isLoading: loadingMaterials, error: materialsError } = useBasicParams();
   const runCalculation = useRunCalculation();
 
   const [result, setResult] = useState<CalculationResult | null>(null);
+
+  // Debug: Log materials
+  console.log("Materials:", materials, "Loading:", loadingMaterials, "Error:", materialsError);
 
   const {
     register,
@@ -101,11 +104,11 @@ export default function CalculadoraPage() {
   };
 
   const dailyChartData = {
-    labels: result?.daily_production?.map((_, i) => `Día ${i + 1}`) || [],
+    labels: result?.derivative_production?.map((_, i) => `Día ${i + 1}`) || [],
     datasets: [
       {
         label: "Producción Diaria (m³/día)",
-        data: result?.daily_production || [],
+        data: result?.derivative_production || [],
         borderColor: "#42a5f5",
         backgroundColor: "rgba(66, 165, 245, 0.1)",
         fill: true,
@@ -142,23 +145,25 @@ export default function CalculadoraPage() {
                   value: m.id,
                   label: `${m.supplyName} (TS: ${m.TS}%)`,
                 }))}
+                placeholder={loadingMaterials ? "Cargando materiales..." : "Seleccione un material"}
                 error={errors.type_material?.message}
-                value={selectedMaterialId}
+                value={selectedMaterialId || ""}
                 onChange={(e) => handleMaterialChange(Number(e.target.value))}
+                disabled={loadingMaterials}
               />
 
               {selectedMaterial && (
-                <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1">
+                <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1 text-gray-900">
                   <p>
-                    <span className="font-medium">Sólidos Totales (TS):</span>{" "}
+                    <span className="font-medium text-gray-700">Sólidos Totales (TS):</span>{" "}
                     {selectedMaterial.TS}%
                   </p>
                   <p>
-                    <span className="font-medium">VS/TS:</span>{" "}
+                    <span className="font-medium text-gray-700">VS/TS:</span>{" "}
                     {selectedMaterial.VSTS}
                   </p>
                   <p>
-                    <span className="font-medium">Potencial:</span>{" "}
+                    <span className="font-medium text-gray-700">Potencial:</span>{" "}
                     {selectedMaterial.potencial_production} m³/kg VS
                   </p>
                 </div>
@@ -281,32 +286,32 @@ export default function CalculadoraPage() {
               {/* Resumen de Resultados */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <StatCard
-                  title="Total Producido"
-                  value={`${result.total_production?.toFixed(2) || "0"} m³`}
+                  title="Producción Potencial"
+                  value={`${result.potencial_production?.toFixed(2) || "0"} m³`}
                   icon={<FiBarChart2 className="w-6 h-6" />}
                   trend={
-                    result.total_production > 0
-                      ? { value: "Gompertz", direction: "up" }
+                    result.potencial_production > 0
+                      ? { value: 100, isPositive: true }
                       : undefined
                   }
                 />
                 <StatCard
                   title="Pico de Producción"
-                  value={`${Math.max(...(result.daily_production || [0])).toFixed(3)} m³/día`}
+                  value={`${Math.max(...(result.derivative_production || [0])).toFixed(3)} m³/día`}
                   icon={<FiTrendingUp className="w-6 h-6" />}
                 />
                 <StatCard
                   title="Día del Pico"
                   value={`Día ${
-                    (result.daily_production?.indexOf(
-                      Math.max(...(result.daily_production || [0]))
+                    (result.derivative_production?.indexOf(
+                      Math.max(...(result.derivative_production || [0]))
                     ) || 0) + 1
                   }`}
                   icon={<FiInfo className="w-6 h-6" />}
                 />
                 <StatCard
-                  title="VS Disponibles"
-                  value={`${result.volatile_solids?.toFixed(2) || "0"} kg`}
+                  title="VS Totales"
+                  value={`${result.total_volatile_solids?.toFixed(2) || "0"} kg`}
                   icon={<FiBarChart2 className="w-6 h-6" />}
                 />
               </div>
@@ -350,23 +355,23 @@ export default function CalculadoraPage() {
       {/* Información del Modelo */}
       <Card title="Modelo de Gompertz Modificado" icon={<FiInfo className="w-5 h-5" />}>
         <div className="prose prose-sm max-w-none">
-          <p className="text-gray-600">
+          <p className="text-gray-700">
             El sistema utiliza el modelo de Gompertz modificado para predecir la
             producción de biogás. Este modelo describe el crecimiento sigmoidal
             característico de la producción acumulada de biogás durante la digestión
             anaerobia.
           </p>
-          <div className="bg-gray-50 p-4 rounded-lg mt-4 font-mono text-center">
+          <div className="bg-gray-100 p-4 rounded-lg mt-4 font-mono text-center text-gray-900">
             Y(t) = P × exp(-b × exp(-c × t))
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 text-sm">
-            <div className="bg-blue-50 p-3 rounded">
+            <div className="bg-blue-100 p-3 rounded text-blue-900">
               <strong>Y(t):</strong> Producción acumulada en el tiempo t
             </div>
-            <div className="bg-green-50 p-3 rounded">
+            <div className="bg-green-100 p-3 rounded text-green-900">
               <strong>P:</strong> Producción potencial máxima
             </div>
-            <div className="bg-yellow-50 p-3 rounded">
+            <div className="bg-yellow-100 p-3 rounded text-yellow-900">
               <strong>b, c:</strong> Parámetros cinéticos del modelo
             </div>
           </div>
