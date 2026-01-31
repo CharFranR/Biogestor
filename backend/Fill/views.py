@@ -14,7 +14,7 @@ class FillViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def end_fill(self, request, pk=None):
         active_fill = get_object_or_404(Fill, last_day = None)
-        active_fill.last_day = timezone.now()
+        active_fill.last_day = timezone.now().date()
         active_fill.save()
 
         serializer = FillSerializer(active_fill)

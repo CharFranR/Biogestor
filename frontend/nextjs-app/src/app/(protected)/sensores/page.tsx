@@ -1,14 +1,35 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { FiWifi, FiWifiOff, FiRefreshCw, FiMaximize2 } from "react-icons/fi";
+import { FiWifi, FiWifiOff, FiRefreshCw, FiMaximize2, FiPlus } from "react-icons/fi";
 import { useSensorData } from "@/hooks/useSensorData";
-import { SensorChart, DEFAULT_SENSOR_CONFIGS } from "@/components/SensorChart";
-import { Card, Button, Modal } from "@/components/ui";
+import { SensorChart } from "@/components/SensorChart";
+import { Card, Button, Modal, Input, Select } from "@/components/ui";
 import { clsx } from "@/lib/utils";
+import { useSensors, useMeasuredVariables, useCreateSensor, useCreateMeasuredVariable } from "@/lib/services/sensorService";
 import type { SensorReading } from "@/hooks/useSensorData";
+import type { SensorCreateData } from "@/types";
 
 type TimeRange = "5min" | "15min" | "1hr";
+
+// Colores para sensores dinámicos
+const SENSOR_COLORS = [
+  "#26a69a", "#42a5f5", "#ffa726", "#7e57c2", "#66bb6a",
+  "#ef5350", "#ab47bc", "#29b6f6", "#ffca28", "#8d6e63",
+];
+
+const getSensorColor = (index: number) => SENSOR_COLORS[index % SENSOR_COLORS.length];
+
+const initialSensorForm: SensorCreateData = {
+  name: "",
+  mqtt_code: "",
+  measured_variable: 0,
+  min_range: 0,
+  max_range: 100,
+  hysteresis: null,
+  accuracy: null,
+  precision: null,
+};
 
 export default function SensoresPage() {
   const { sensorData, status, isConnected, retryCount, reconnect } =
@@ -16,6 +37,51 @@ export default function SensoresPage() {
 
   const [timeRange, setTimeRange] = useState<TimeRange>("15min");
   const [fullscreenSensor, setFullscreenSensor] = useState<string | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [sensorForm, setSensorForm] = useState<SensorCreateData>(initialSensorForm);
+  const [isAddingVariable, setIsAddingVariable] = useState(false);
+  const [newVariableName, setNewVariableName] = useState("");
+
+  // Queries
+  const { data: sensors, refetch: refetchSensors } = useSensors();
+  const { data: measuredVariables, refetch: refetchVariables } = useMeasuredVariables();
+  const createSensorMutation = useCreateSensor();
+  const createVariableMutation = useCreateMeasuredVariable();
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const handleCreateSensor = async () => {
+    setFormError(null);
+    
+    if (!sensorForm.name || !sensorForm.mqtt_code || !sensorForm.measured_variable) {
+      setFormError("Por favor complete todos los campos requeridos");
+      return;
+    }
+
+    try {
+      await createSensorMutation.mutateAsync(sensorForm);
+      setIsCreateModalOpen(false);
+      setSensorForm(initialSensorForm);
+      setFormError(null);
+      refetchSensors();
+    } catch (error) {
+      console.error("Error al crear sensor:", error);
+      setFormError("Error al crear el sensor. Verifique los datos e intente de nuevo.");
+    }
+  };
+
+  const handleCreateVariable = async () => {
+    if (!newVariableName.trim()) return;
+
+    try {
+      const newVariable = await createVariableMutation.mutateAsync(newVariableName.trim());
+      setSensorForm({ ...sensorForm, measured_variable: newVariable.id });
+      setNewVariableName("");
+      setIsAddingVariable(false);
+      refetchVariables();
+    } catch (error) {
+      console.error("Error al crear variable:", error);
+    }
+  };
 
   // Filter data based on time range
   const filteredSensorData = useMemo(() => {
@@ -64,12 +130,20 @@ export default function SensoresPage() {
     error: "Error de conexión",
   };
 
-  const fullscreenConfig = fullscreenSensor
-    ? DEFAULT_SENSOR_CONFIGS.find((c) => c.sensorCode === fullscreenSensor)
-    : null;
-
+  // Generar configuración dinámica para el sensor en fullscreen
   const fullscreenReading = fullscreenSensor
     ? filteredSensorData.get(fullscreenSensor)
+    : null;
+
+  const fullscreenConfig = fullscreenSensor
+    ? {
+        sensorCode: fullscreenSensor,
+        title: fullscreenSensor,
+        unit: "",
+        color: getSensorColor(
+          Array.from(filteredSensorData.keys()).indexOf(fullscreenSensor)
+        ),
+      }
     : null;
 
   return (
@@ -126,38 +200,35 @@ export default function SensoresPage() {
             </button>
           ))}
         </div>
+
+        {/* Add Sensor Button */}
+        <Button
+          variant="primary"
+          leftIcon={<FiPlus className="w-4 h-4" />}
+          onClick={() => setIsCreateModalOpen(true)}
+        >
+          Agregar Sensor
+        </Button>
       </div>
 
-      {/* Sensor Charts Grid */}
+      {/* Sensor Charts Grid - Muestra solo sensores con datos */}
       {isConnected && sensorData.size > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {DEFAULT_SENSOR_CONFIGS.map((config) => {
-            const reading = filteredSensorData.get(config.sensorCode);
+          {Array.from(filteredSensorData.entries()).map(([sensorCode, reading], index) => {
             if (!reading || reading.values.length === 0) {
-              // Show placeholder for unconfigured sensor
-              return (
-                <div
-                  key={config.sensorCode}
-                  className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 h-72 flex flex-col items-center justify-center text-gray-400"
-                >
-                  <p className="text-sm">{config.title}</p>
-                  <p className="text-xs mt-1">Sin datos</p>
-                </div>
-              );
+              return null;
             }
 
             return (
-              <div key={config.sensorCode} className="relative group">
+              <div key={sensorCode} className="relative group">
                 <SensorChart
                   sensorReading={reading}
-                  title={config.title}
-                  unit={config.unit}
-                  color={config.color}
-                  minValue={config.minValue}
-                  maxValue={config.maxValue}
+                  title={sensorCode}
+                  unit=""
+                  color={getSensorColor(index)}
                 />
                 <button
-                  onClick={() => setFullscreenSensor(config.sensorCode)}
+                  onClick={() => setFullscreenSensor(sensorCode)}
                   className="absolute top-4 right-4 p-2 bg-white/80 hover:bg-white rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
                   title="Pantalla completa"
                 >
@@ -210,11 +281,166 @@ export default function SensoresPage() {
               title={fullscreenConfig.title}
               unit={fullscreenConfig.unit}
               color={fullscreenConfig.color}
-              minValue={fullscreenConfig.minValue}
-              maxValue={fullscreenConfig.maxValue}
             />
           </div>
         )}
+      </Modal>
+
+      {/* Create Sensor Modal */}
+      <Modal
+        isOpen={isCreateModalOpen}
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          setSensorForm(initialSensorForm);
+          setFormError(null);
+        }}
+        title="Agregar Nuevo Sensor"
+      >
+        <div className="space-y-4">
+          {formError && (
+            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+              {formError}
+            </div>
+          )}
+          
+          <Input
+            label="Nombre del Sensor"
+            value={sensorForm.name}
+            onChange={(e) => setSensorForm({ ...sensorForm, name: e.target.value })}
+            placeholder="Ej: Sensor de Temperatura"
+            required
+          />
+
+          <Input
+            label="Código MQTT"
+            value={sensorForm.mqtt_code}
+            onChange={(e) => setSensorForm({ ...sensorForm, mqtt_code: e.target.value })}
+            placeholder="Ej: temperatura"
+            helperText="El topic MQTT será: Biogestor/{código}"
+            required
+          />
+
+          {/* Variable Medida con opción de agregar nueva */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Variable Medida
+            </label>
+            
+            {!isAddingVariable ? (
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <Select
+                    value={sensorForm.measured_variable?.toString() || ""}
+                    onChange={(e) => setSensorForm({ ...sensorForm, measured_variable: parseInt(e.target.value) || 0 })}
+                    placeholder="Seleccionar variable..."
+                    options={measuredVariables?.map((variable) => ({
+                      value: variable.id,
+                      label: variable.name,
+                    })) || []}
+                    required
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsAddingVariable(true)}
+                  title="Agregar nueva variable"
+                >
+                  <FiPlus className="w-4 h-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <Input
+                    value={newVariableName}
+                    onChange={(e) => setNewVariableName(e.target.value)}
+                    placeholder="Nombre de la variable (ej: Temperatura)"
+                    autoFocus
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={handleCreateVariable}
+                  disabled={!newVariableName.trim() || createVariableMutation.isPending}
+                >
+                  {createVariableMutation.isPending ? "..." : "Crear"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsAddingVariable(false);
+                    setNewVariableName("");
+                  }}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              type="number"
+              label="Rango Mínimo"
+              value={sensorForm.min_range}
+              onChange={(e) => setSensorForm({ ...sensorForm, min_range: parseFloat(e.target.value) || 0 })}
+              required
+            />
+            <Input
+              type="number"
+              label="Rango Máximo"
+              value={sensorForm.max_range}
+              onChange={(e) => setSensorForm({ ...sensorForm, max_range: parseFloat(e.target.value) || 0 })}
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <Input
+              type="number"
+              label="Histéresis (%)"
+              value={sensorForm.hysteresis ?? ""}
+              onChange={(e) => setSensorForm({ ...sensorForm, hysteresis: e.target.value ? parseFloat(e.target.value) : null })}
+              placeholder="Opcional"
+            />
+            <Input
+              type="number"
+              label="Precisión (%)"
+              value={sensorForm.accuracy ?? ""}
+              onChange={(e) => setSensorForm({ ...sensorForm, accuracy: e.target.value ? parseFloat(e.target.value) : null })}
+              placeholder="Opcional"
+            />
+            <Input
+              type="number"
+              label="Exactitud (%)"
+              value={sensorForm.precision ?? ""}
+              onChange={(e) => setSensorForm({ ...sensorForm, precision: e.target.value ? parseFloat(e.target.value) : null })}
+              placeholder="Opcional"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsCreateModalOpen(false);
+                setSensorForm(initialSensorForm);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleCreateSensor}
+              disabled={!sensorForm.name || !sensorForm.mqtt_code || !sensorForm.measured_variable || createSensorMutation.isPending}
+            >
+              {createSensorMutation.isPending ? "Creando..." : "Crear Sensor"}
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

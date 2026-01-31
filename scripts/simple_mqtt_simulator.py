@@ -41,10 +41,30 @@ def generate_sensor_data(t: float):
     # Humedad: ~65% con variación
     hum = 65.0 + 10.0 * math.sin(2 * math.pi * (t / 1800.0)) + random.uniform(-2.0, 2.0)
     
+    # Calidad: 0-100 con variación
+    calidad = 50.0 + 40.0 * math.sin(2 * math.pi * (t / 600.0)) + random.uniform(-5.0, 5.0)
+    calidad = max(0, min(100, calidad))  # Clamp entre 0 y 100
+    
+    # Prueba1: 0-100 con variación aleatoria
+    prueba1 = 50.0 + random.uniform(-30.0, 30.0)
+    prueba1 = max(0, min(100, prueba1))  # Clamp entre 0 y 100
+    
+    # SP3: 0-100 con onda triangular
+    sp3 = 50.0 + 30.0 * math.sin(2 * math.pi * (t / 300.0)) + random.uniform(-3.0, 3.0)
+    sp3 = max(0, min(100, sp3))
+    
+    # SP4: 0-100 con variación más lenta
+    sp4 = 50.0 + 25.0 * math.cos(2 * math.pi * (t / 900.0)) + random.uniform(-4.0, 4.0)
+    sp4 = max(0, min(100, sp4))
+    
     return {
         "temperatura": round(temp, 2),
         "presion": round(pres, 2),
         "humedad": round(hum, 2),
+        "Calidad": round(calidad, 2),
+        "Prueba1": round(prueba1, 2),
+        "SP3": round(sp3, 2),
+        "SP4": round(sp4, 2),
     }
 
 
@@ -85,6 +105,10 @@ def main():
     print("  - Biogestor/temperatura")
     print("  - Biogestor/presion")
     print("  - Biogestor/humedad")
+    print("  - Biogestor/Calidad")
+    print("  - Biogestor/Prueba1")
+    print("  - Biogestor/SP3")
+    print("  - Biogestor/SP4")
     print("\nPresiona Ctrl+C para detener\n")
     
     t0 = time.time()

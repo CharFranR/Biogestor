@@ -8,8 +8,22 @@ import {
   FiTrash2,
   FiStopCircle,
   FiDroplet,
+  FiTrendingUp,
+  FiActivity,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip as ChartTooltip,
+  Legend,
+  Filler,
+} from "chart.js";
+import { Line } from "react-chartjs-2";
 import {
   Card,
   Button,
@@ -31,6 +45,18 @@ import {
 import { useBasicParams } from "@/lib/services/calculatorService";
 import { formatDate } from "@/lib/utils";
 import type { Fill, FillCreateData } from "@/types";
+
+// Registrar componentes de Chart.js
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  ChartTooltip,
+  Legend,
+  Filler
+);
 
 export default function LlenadosPage() {
   const { data: fills = [], isLoading } = useFills();
@@ -175,6 +201,126 @@ export default function LlenadosPage() {
           >
             Finalizar Llenado
           </Button>
+        </div>
+      )}
+
+      {/* Production Charts - Only show when there's an active fill with prediction */}
+      {activeFill?.prediction && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Cumulative Production Chart */}
+          <Card>
+            <div className="p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <FiTrendingUp className="w-5 h-5 text-blue-600" />
+                <h3 className="font-semibold text-gray-800">Producción Acumulada</h3>
+              </div>
+              <div className="h-64">
+                <Line
+                  data={{
+                    labels: activeFill.prediction.cumulative_production.map((_, i) => i + 1),
+                    datasets: [
+                      {
+                        label: "Producción Acumulada (m³)",
+                        data: activeFill.prediction.cumulative_production,
+                        borderColor: "#3b82f6",
+                        backgroundColor: "rgba(59, 130, 246, 0.1)",
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { display: false },
+                      tooltip: {
+                        callbacks: {
+                          label: (ctx) => `${(ctx.parsed.y ?? 0).toFixed(3)} m³`,
+                          title: (ctx) => `Día ${ctx[0]?.label ?? ''}`,
+                        },
+                      },
+                    },
+                    scales: {
+                      x: {
+                        title: { display: true, text: "Días" },
+                        ticks: { maxTicksLimit: 10 },
+                      },
+                      y: {
+                        title: { display: true, text: "m³" },
+                      },
+                    },
+                  }}
+                />
+              </div>
+              <div className="mt-3 text-center text-sm text-gray-500">
+                Producción potencial total: <span className="font-medium text-blue-600">
+                  {activeFill.prediction.potencial_production.toFixed(3)} m³
+                </span>
+              </div>
+            </div>
+          </Card>
+
+          {/* Daily Production Chart */}
+          <Card>
+            <div className="p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <FiActivity className="w-5 h-5 text-green-600" />
+                <h3 className="font-semibold text-gray-800">Producción Diaria</h3>
+              </div>
+              <div className="h-64">
+                <Line
+                  data={{
+                    labels: activeFill.prediction.derivative_production.map((_, i) => i + 1),
+                    datasets: [
+                      {
+                        label: "Producción Diaria (m³/día)",
+                        data: activeFill.prediction.derivative_production,
+                        borderColor: "#22c55e",
+                        backgroundColor: "rgba(34, 197, 94, 0.1)",
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { display: false },
+                      tooltip: {
+                        callbacks: {
+                          label: (ctx) => `${(ctx.parsed.y ?? 0).toFixed(4)} m³/día`,
+                          title: (ctx) => `Día ${ctx[0]?.label ?? ''}`,
+                        },
+                      },
+                    },
+                    scales: {
+                      x: {
+                        title: { display: true, text: "Días" },
+                        ticks: { maxTicksLimit: 10 },
+                      },
+                      y: {
+                        title: { display: true, text: "m³/día" },
+                      },
+                    },
+                  }}
+                />
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
+                <div className="text-center">
+                  <p className="text-gray-500">Sólidos Totales</p>
+                  <p className="font-medium text-gray-800">{activeFill.prediction.total_solids.toFixed(3)} kg</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-gray-500">Sólidos Volátiles</p>
+                  <p className="font-medium text-gray-800">{activeFill.prediction.total_volatile_solids.toFixed(3)} kg</p>
+                </div>
+              </div>
+            </div>
+          </Card>
         </div>
       )}
 

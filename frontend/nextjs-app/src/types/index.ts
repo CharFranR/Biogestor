@@ -101,11 +101,15 @@ export interface SensorCreateData {
 
 export interface FillPrediction {
   id: number;
-  expected_max_production: number;
-  expected_production_day: number;
-  expected_delay_days: number;
-  cumulative_data: number[];
-  daily_data: number[];
+  total_solids: number;
+  total_volatile_solids: number;
+  potencial_production: number;
+  max_mu: number;
+  solvent_volume: number;
+  initial_concentration: number;
+  specific_mu: number;
+  cumulative_production: number[];
+  derivative_production: number[];
 }
 
 export interface Fill {

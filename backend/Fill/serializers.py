@@ -26,24 +26,24 @@ class FillSerializer(serializers.ModelSerializer):
         delay_time = validated_data['delay_time']
         temperature = 28
 
-        basic_params = BasicParams.objects.get(supplyName = type_material)
+        # type_material es el ID del BasicParams, no el nombre
+        basic_params = BasicParams.objects.get(id=int(type_material))
 
         simulation_data = simulation (basic_params, filling_mass, filling_moisture, temperature, 
                            added_watter, approx_density, delay_time)
 
-        prediction_obj = FillPrediction.objects.create()
-
-        prediction_obj.total_solids = round(simulation_data[0],3)                             # type: ignore
-        prediction_obj.total_volatile_solids = round(simulation_data[1],3)
-        prediction_obj.potencial_production = round(simulation_data[2],3)
-        prediction_obj.max_mu = round(simulation_data[3],3)
-        prediction_obj.solvent_volume = round(simulation_data[4],3)
-        prediction_obj.initial_concentration = round(simulation_data[5],3)
-        prediction_obj.specific_mu = round(simulation_data[6],3)
-        prediction_obj.cumulative_production = [round(x, 3) for x in simulation_data[7]]
-        prediction_obj.derivative_production = [round(x, 3) for x in simulation_data[8]]
-
-        prediction_obj.save()
+        # Crear FillPrediction con todos los valores de una vez
+        prediction_obj = FillPrediction.objects.create(
+            total_solids=round(simulation_data[0], 3),
+            total_volatile_solids=round(simulation_data[1], 3),
+            potencial_production=round(simulation_data[2], 3),
+            max_mu=round(simulation_data[3], 3),
+            solvent_volume=round(simulation_data[4], 3),
+            initial_concentration=round(simulation_data[5], 3),
+            specific_mu=round(simulation_data[6], 3),
+            cumulative_production=[round(x, 3) for x in simulation_data[7]],
+            derivative_production=[round(x, 3) for x in simulation_data[8]]
+        )
 
         validated_data['prediction'] = prediction_obj
 

@@ -26,7 +26,13 @@ async function fetchSensor(id: number): Promise<Sensor> {
 }
 
 async function createSensor(data: SensorCreateData): Promise<Sensor> {
-  const response = await apiClient.post<Sensor>("/api/sensors/", data);
+  // El backend espera measured_variable_id para ForeignKey
+  const { measured_variable, ...rest } = data;
+  const payload = {
+    ...rest,
+    measured_variable_id: measured_variable,
+  };
+  const response = await apiClient.post<Sensor>("/api/sensors/", payload);
   return response.data;
 }
 
@@ -34,7 +40,12 @@ async function updateSensor(
   id: number,
   data: Partial<SensorCreateData>
 ): Promise<Sensor> {
-  const response = await apiClient.put<Sensor>(`/api/sensors/${id}/`, data);
+  // El backend espera measured_variable_id para ForeignKey
+  const { measured_variable, ...rest } = data;
+  const payload = measured_variable 
+    ? { ...rest, measured_variable_id: measured_variable }
+    : rest;
+  const response = await apiClient.put<Sensor>(`/api/sensors/${id}/`, payload);
   return response.data;
 }
 
@@ -53,6 +64,14 @@ async function fetchSensorData(sensorId?: number): Promise<SensorData[]> {
 async function fetchMeasuredVariables(): Promise<MeasuredVariable[]> {
   const response = await apiClient.get<MeasuredVariable[]>(
     "/api/measuredVariables/"
+  );
+  return response.data;
+}
+
+async function createMeasuredVariable(name: string): Promise<MeasuredVariable> {
+  const response = await apiClient.post<MeasuredVariable>(
+    "/api/measuredVariables/",
+    { name }
   );
   return response.data;
 }
@@ -90,6 +109,17 @@ export function useMeasuredVariables() {
     queryKey: [MEASURED_VARIABLES_KEY],
     queryFn: fetchMeasuredVariables,
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+export function useCreateMeasuredVariable() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createMeasuredVariable,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [MEASURED_VARIABLES_KEY] });
+    },
   });
 }
 
