@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { FiCheck, FiX, FiUsers, FiUserCheck, FiShield } from "react-icons/fi";
 import toast from "react-hot-toast";
 import { Card, Button, Tabs, Table, Badge, Modal } from "@/components/ui";
+import { PermissionGuard } from "@/components/PermissionGuard";
 import {
   useApprovedUsers,
   usePendingUsers,
@@ -15,14 +16,32 @@ import {
 import type { User, UserPermissions } from "@/types";
 
 const PERMISSION_LABELS: Record<string, string> = {
-  ApproveUsers: "Aprobar Usuarios",
+  // Sensores
+  ViewDashboard: "Ver Dashboard/Sensores",
+  // Llenados
+  ViewFillData: "Ver Llenados",
+  CreateFill: "Crear Llenados",
+  EndFill: "Finalizar Llenados",
+  // Calibraciones
+  ViewCalibrations: "Ver Calibraciones",
+  CreateCalibrations: "Crear Calibraciones",
+  ModifyCalibrations: "Modificar Calibraciones",
+  UpdateCalibrations: "Actualizar Calibraciones",
+  DeleteCalibrations: "Eliminar Calibraciones",
+  // Inventario
+  ViewInventory: "Ver Inventario",
+  CreateInventory: "Crear Items",
+  ModifyInventory: "Modificar Inventario",
+  UpdateInventory: "Actualizar Inventario",
+  DeleteInventory: "Eliminar Items",
+  // Reportes
   ViewReports: "Ver Reportes",
   GenerateReports: "Generar Reportes",
-  ViewDashboard: "Ver Dashboard/Sensores",
-  ViewFillData: "Ver Llenados",
-  ViewCalibrations: "Ver Calibraciones",
-  ViewInventory: "Ver Inventario",
-  ModifyInventory: "Modificar Inventario",
+  // Usuarios
+  ViewUsers: "Ver Usuarios",
+  ModifyUsers: "Modificar Usuarios",
+  ApproveUsers: "Aprobar Usuarios",
+  BanUsers: "Banear Usuarios",
 };
 
 const ROLE_OPTIONS = [
@@ -179,6 +198,7 @@ export default function PermisosPage() {
   ];
 
   return (
+    <PermissionGuard permission="ViewUsers">
     <div className="space-y-6">
       <Card>
         <Tabs tabs={tabs} />
@@ -198,6 +218,7 @@ export default function PermisosPage() {
         />
       )}
     </div>
+    </PermissionGuard>
   );
 }
 

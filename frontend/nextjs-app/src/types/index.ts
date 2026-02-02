@@ -18,14 +18,32 @@ export interface UserProfile {
 }
 
 export interface UserPermissions {
-  ApproveUsers?: boolean;
+  // Sensors
+  ViewDashboard?: boolean;
+  // Fills
+  ViewFillData?: boolean;
+  CreateFill?: boolean;
+  EndFill?: boolean;
+  // Calibrations
+  ViewCalibrations?: boolean;
+  CreateCalibrations?: boolean;
+  ModifyCalibrations?: boolean;
+  UpdateCalibrations?: boolean;
+  DeleteCalibrations?: boolean;
+  // Inventory
+  ViewInventory?: boolean;
+  CreateInventory?: boolean;
+  ModifyInventory?: boolean;
+  UpdateInventory?: boolean;
+  DeleteInventory?: boolean;
+  // Reports
   ViewReports?: boolean;
   GenerateReports?: boolean;
-  ViewDashboard?: boolean;
-  ViewFillData?: boolean;
-  ViewCalibrations?: boolean;
-  ViewInventory?: boolean;
-  ModifyInventory?: boolean;
+  // Users
+  ViewUsers?: boolean;
+  ModifyUsers?: boolean;
+  ApproveUsers?: boolean;
+  BanUsers?: boolean;
   [key: string]: boolean | undefined;
 }
 

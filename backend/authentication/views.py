@@ -187,32 +187,68 @@ class UserViewSet(viewsets.ViewSet):
         permissions = profile.permissions
 
         if role == "ADMIN":
-            permissions.ApproveUsers = True
+            permissions.ViewDashboard = True
+            permissions.ViewFillData = True
+            permissions.CreateFill = True
+            permissions.EndFill = True
+            permissions.ViewCalibrations = True
+            permissions.CreateCalibrations = True
+            permissions.ModifyCalibrations = True
+            permissions.UpdateCalibrations = True
+            permissions.DeleteCalibrations = True
+            permissions.ViewInventory = True
+            permissions.CreateInventory = True
+            permissions.ModifyInventory = True
+            permissions.UpdateInventory = True
+            permissions.DeleteInventory = True
             permissions.ViewReports = True
             permissions.GenerateReports = True
+            permissions.ViewUsers = True
+            permissions.ModifyUsers = True
+            permissions.ApproveUsers = True
+            permissions.BanUsers = True
+        elif role == "COLAB":
             permissions.ViewDashboard = True
             permissions.ViewFillData = True
+            permissions.CreateFill = True
+            permissions.EndFill = True
             permissions.ViewCalibrations = True
+            permissions.CreateCalibrations = True
+            permissions.ModifyCalibrations = False
+            permissions.UpdateCalibrations = False
+            permissions.DeleteCalibrations = False
             permissions.ViewInventory = True
-            permissions.ModifyInventory = True
-        elif role == "COLAB":
-            permissions.ApproveUsers = False
+            permissions.CreateInventory = False
+            permissions.ModifyInventory = False
+            permissions.UpdateInventory = False
+            permissions.DeleteInventory = False
             permissions.ViewReports = True
             permissions.GenerateReports = False
-            permissions.ViewDashboard = True
-            permissions.ViewFillData = True
-            permissions.ViewCalibrations = True
-            permissions.ViewInventory = False
-            permissions.ModifyInventory = False
-        else:
+            permissions.ViewUsers = False
+            permissions.ModifyUsers = False
             permissions.ApproveUsers = False
-            permissions.ViewReports = False
-            permissions.GenerateReports = False
+            permissions.BanUsers = False
+        else:
             permissions.ViewDashboard = False
             permissions.ViewFillData = False
+            permissions.CreateFill = False
+            permissions.EndFill = False
             permissions.ViewCalibrations = False
+            permissions.CreateCalibrations = False
+            permissions.ModifyCalibrations = False
+            permissions.UpdateCalibrations = False
+            permissions.DeleteCalibrations = False
             permissions.ViewInventory = False
+            permissions.CreateInventory = False
             permissions.ModifyInventory = False
+            permissions.UpdateInventory = False
+            permissions.DeleteInventory = False
+            permissions.ViewReports = False
+            permissions.GenerateReports = False
+            permissions.ViewUsers = False
+            permissions.ModifyUsers = False
+            permissions.ApproveUsers = False
+            permissions.BanUsers = False
 
         permissions.save()
         profile.rol = role

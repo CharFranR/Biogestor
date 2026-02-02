@@ -25,6 +25,9 @@ class Permissions(models.Model):
     UpdateInventory = models.BooleanField(default=False)
     DeleteInventory = models.BooleanField(default=False)
 
+    # Calculator
+    ViewCalculator = models.BooleanField(default=False)
+    
     # Reports
     ViewReports = models.BooleanField(default=False)
     GenerateReports = models.BooleanField(default=False)

@@ -60,7 +60,7 @@ const navItems: NavItem[] = [
     name: "Usuarios",
     href: "/permisos",
     icon: <FiUsers className="w-5 h-5" />,
-    permission: "ApproveUsers",
+    permission: "ViewUsers",
   },
   {
     name: "Mi Perfil",

@@ -114,6 +114,13 @@ class AllowDeleteInventory(permissions.BasePermission):
     def has_permission(self, request, view):
         return _user_has_permission_flag(request, "ModifyInventory")
 
+# Calculator
+class AllowViewCalculator(permissions.BasePermission):
+    """Allow access to calculator views for users with ViewCalculator permission."""
+
+    def has_permission(self, request, view):
+        return _user_has_permission_flag(request, "ViewCalculator")
+
 # Report
 
 class AllowViewReports(permissions.BasePermission):
