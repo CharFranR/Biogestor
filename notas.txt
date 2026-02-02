@@ -1,4 +1,7 @@
-La refactorización del backend prosigue, falta mostrar los datos reales del llenado cuando este se inicia, falta poder agregar correctamente las calibraciones y un boton 
-para agregar las materias primeras
+Notas de la versión 0102
 
-docker exec -it drf_backend python manage.py shell -c "from django.contrib.auth import get_user_model; from authentication.models import Profile, Permissions; User = get_user_model(); admin = User.objects.get(username='oscar'); perms, _ = Permissions.objects.get_or_create(id=1, defaults={'ApproveUsers': True, 'ViewReports': True, 'GenerateReports': True, 'ViewDashboard': True, 'ViewCalibrations': True, 'ViewInventory': True, 'ModifyInventory': True}); profile, created = Profile.objects.get_or_create(user=admin, defaults={'permissions': perms}); profile.aprobado = True; profile.rol = 'ADMIN'; profile.permissions = perms; profile.save(); print('Superusuario configurado correctamente')"
+Manejo de permisos: El manejo de servicios se ha actualizado incluyendo permisos necesarios que no habian sido considerados.
+Frontend: El frontend se coneta correctamente con los endpoints del backend, ademas se ha mejorado la experiencia para el admin respecto a los Usuarios.
+
+
+Falta por integrar: Generacion de reportes, sistema de alarmas y panel para agregar nuevos insumos de llenado
