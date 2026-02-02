@@ -23,6 +23,7 @@ import {
 } from "chart.js";
 import toast from "react-hot-toast";
 import { Card, Button, Input, Select, StatCard } from "@/components/ui";
+import { PermissionGuard } from "@/components/PermissionGuard";
 import {
   useBasicParams,
   useRunCalculation,
@@ -133,6 +134,7 @@ export default function CalculadoraPage() {
   };
 
   return (
+    <PermissionGuard permission="ViewCalculator">
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Formulario de Parámetros */}
@@ -378,5 +380,6 @@ export default function CalculadoraPage() {
         </div>
       </Card>
     </div>
+    </PermissionGuard>
   );
 }

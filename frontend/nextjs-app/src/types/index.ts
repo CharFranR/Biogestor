@@ -8,6 +8,7 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
+  is_superuser: boolean;
   profile: UserProfile;
 }
 
@@ -36,6 +37,8 @@ export interface UserPermissions {
   ModifyInventory?: boolean;
   UpdateInventory?: boolean;
   DeleteInventory?: boolean;
+  // Calculator
+  ViewCalculator?: boolean;
   // Reports
   ViewReports?: boolean;
   GenerateReports?: boolean;

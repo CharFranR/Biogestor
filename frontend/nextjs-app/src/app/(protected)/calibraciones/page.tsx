@@ -14,6 +14,7 @@ import {
   Select,
   Textarea,
 } from "@/components/ui";
+import { PermissionGuard } from "@/components/PermissionGuard";
 import {
   useCalibrations,
   useCreateCalibration,
@@ -114,6 +115,7 @@ export default function CalibracionesPage() {
   ];
 
   return (
+    <PermissionGuard permission="ViewCalibrations">
     <div className="space-y-6">
       <Card
         title="Calibraciones de Sensores"
@@ -168,6 +170,7 @@ export default function CalibracionesPage() {
         isLoading={deleteCalibration.isPending}
       />
     </div>
+    </PermissionGuard>
   );
 }
 

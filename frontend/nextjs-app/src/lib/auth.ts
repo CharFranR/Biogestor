@@ -57,10 +57,12 @@ export const authService = {
   },
 
   /**
-   * Get current authenticated user
+   * Get current authenticated user and update stored data
    */
   async getCurrentUser(): Promise<User> {
     const response = await apiClient.get<User>("/api/users/me/");
+    // Update stored user data with fresh data from server
+    Cookies.set(USER_KEY, JSON.stringify(response.data), { expires: 7 });
     return response.data;
   },
 

@@ -36,11 +36,17 @@ async function approveUser(userId: number): Promise<User> {
   return response.data;
 }
 
+interface PermissionsResponse {
+  user_id: number;
+  username: string;
+  permissions: UserPermissions;
+}
+
 async function fetchUserPermissions(userId: number): Promise<UserPermissions> {
-  const response = await apiClient.get<UserPermissions>(
+  const response = await apiClient.get<PermissionsResponse>(
     `/api/users/${userId}/permissions/`
   );
-  return response.data;
+  return response.data.permissions;
 }
 
 async function updateUserPermissions(

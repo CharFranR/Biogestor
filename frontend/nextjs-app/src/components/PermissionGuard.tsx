@@ -25,16 +25,38 @@ export function PermissionGuard({
   const [hasPermission, setHasPermission] = useState(false);
 
   useEffect(() => {
-    const storedUser = authService.getStoredUser();
-    setUser(storedUser);
+    const checkPermissions = async () => {
+      try {
+        // Fetch fresh user data from server
+        const freshUser = await authService.getCurrentUser();
+        setUser(freshUser);
 
-    if (storedUser) {
-      const userPermissions = storedUser.profile?.permissions;
-      const permitted = userPermissions?.[permission] === true;
-      setHasPermission(permitted);
-    }
+        if (freshUser) {
+          // Superusers (Django admins) have all permissions
+          if (freshUser.is_superuser) {
+            setHasPermission(true);
+          } else {
+            const userPermissions = freshUser.profile?.permissions;
+            const permitted = userPermissions?.[permission] === true;
+            setHasPermission(permitted);
+          }
+        }
+      } catch {
+        // If API fails, fall back to stored user
+        const storedUser = authService.getStoredUser();
+        setUser(storedUser);
+        if (storedUser?.is_superuser) {
+          setHasPermission(true);
+        } else {
+          const userPermissions = storedUser?.profile?.permissions;
+          const permitted = userPermissions?.[permission] === true;
+          setHasPermission(permitted);
+        }
+      }
+      setIsLoading(false);
+    };
 
-    setIsLoading(false);
+    checkPermissions();
   }, [permission]);
 
   if (isLoading) {

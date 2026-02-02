@@ -76,64 +76,38 @@ export default function PerfilPage() {
       </Card>
 
       {/* User Details */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card title="Información de la Cuenta">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-              <FiUser className="w-5 h-5 text-gray-400" />
-              <div>
-                <p className="text-xs text-gray-500">Nombre de Usuario</p>
-                <p className="font-medium text-gray-900">{user.username}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-              <FiMail className="w-5 h-5 text-gray-400" />
-              <div>
-                <p className="text-xs text-gray-500">Correo Electrónico</p>
-                <p className="font-medium text-gray-900">{user.email}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-              <FiShield className="w-5 h-5 text-gray-400" />
-              <div>
-                <p className="text-xs text-gray-500">Rol</p>
-                <p className="font-medium text-gray-900">
-                  {roleLabels[user.profile?.rol || "VISIT"]}
-                </p>
-              </div>
+      <Card title="Información de la Cuenta">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <FiUser className="w-5 h-5 text-gray-400" />
+            <div>
+              <p className="text-xs text-gray-500">Nombre de Usuario</p>
+              <p className="font-medium text-gray-900">{user.username}</p>
             </div>
           </div>
-        </Card>
 
-        <Card title="Permisos Asignados">
-          <div className="space-y-2">
-            {user.profile?.permissions ? (
-              Object.entries(user.profile.permissions).map(([key, value]) => (
-                <div
-                  key={key}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                >
-                  <span className="text-sm text-gray-700">
-                    {key.replace(/([A-Z])/g, " $1").trim()}
-                  </span>
-                  <Badge variant={value ? "success" : "default"} size="sm">
-                    {value ? "Activo" : "Inactivo"}
-                  </Badge>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-500 text-sm text-center py-4">
-                No hay permisos configurados
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <FiMail className="w-5 h-5 text-gray-400" />
+            <div>
+              <p className="text-xs text-gray-500">Correo Electrónico</p>
+              <p className="font-medium text-gray-900">{user.email}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <FiShield className="w-5 h-5 text-gray-400" />
+            <div>
+              <p className="text-xs text-gray-500">Rol</p>
+              <p className="font-medium text-gray-900">
+                {roleLabels[user.profile?.rol || "VISIT"]}
               </p>
-            )}
+            </div>
           </div>
-        </Card>
-      </div>
+        </div>
+      </Card>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <StatCard
           title="Estado de Cuenta"
           value={user.profile?.aprobado ? "Activa" : "Pendiente"}
@@ -145,16 +119,6 @@ export default function PerfilPage() {
           value={roleLabels[user.profile?.rol || "VISIT"]}
           color="primary"
           icon={<FiUser className="w-6 h-6" />}
-        />
-        <StatCard
-          title="Permisos Activos"
-          value={
-            user.profile?.permissions
-              ? Object.values(user.profile.permissions).filter(Boolean).length
-              : 0
-          }
-          color="secondary"
-          icon={<FiCalendar className="w-6 h-6" />}
         />
       </div>
     </div>

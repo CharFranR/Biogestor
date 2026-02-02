@@ -26,11 +26,42 @@ def _ensure_profile(user: User) -> Profile:
     except Profile.DoesNotExist:
         permissions = Permissions.objects.create()
         profile = Profile.objects.create(user=user, permissions=permissions)
-        return profile
 
     if profile.permissions_id is None:
         profile.permissions = Permissions.objects.create()
         profile.save(update_fields=["permissions"])
+
+    # Superusers (Django admins) get all permissions automatically
+    if user.is_superuser:
+        permissions = profile.permissions
+        permissions.ViewDashboard = True
+        permissions.ViewFillData = True
+        permissions.CreateFill = True
+        permissions.EndFill = True
+        permissions.ViewCalibrations = True
+        permissions.CreateCalibrations = True
+        permissions.ModifyCalibrations = True
+        permissions.UpdateCalibrations = True
+        permissions.DeleteCalibrations = True
+        permissions.ViewInventory = True
+        permissions.CreateInventory = True
+        permissions.ModifyInventory = True
+        permissions.UpdateInventory = True
+        permissions.DeleteInventory = True
+        permissions.ViewCalculator = True
+        permissions.ViewReports = True
+        permissions.GenerateReports = True
+        permissions.ViewUsers = True
+        permissions.ModifyUsers = True
+        permissions.ApproveUsers = True
+        permissions.BanUsers = True
+        permissions.save()
+        # Also mark as approved and admin role
+        if not profile.aprobado or profile.rol != "ADMIN":
+            profile.aprobado = True
+            profile.rol = "ADMIN"
+            profile.save(update_fields=["aprobado", "rol"])
+
     return profile
 
 
@@ -115,6 +146,7 @@ class UserViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["get"], url_path="me")
     def me(self, request):
+        _ensure_profile(request.user)
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
@@ -201,6 +233,7 @@ class UserViewSet(viewsets.ViewSet):
             permissions.ModifyInventory = True
             permissions.UpdateInventory = True
             permissions.DeleteInventory = True
+            permissions.ViewCalculator = True
             permissions.ViewReports = True
             permissions.GenerateReports = True
             permissions.ViewUsers = True
@@ -222,6 +255,7 @@ class UserViewSet(viewsets.ViewSet):
             permissions.ModifyInventory = False
             permissions.UpdateInventory = False
             permissions.DeleteInventory = False
+            permissions.ViewCalculator = True
             permissions.ViewReports = True
             permissions.GenerateReports = False
             permissions.ViewUsers = False
@@ -243,6 +277,7 @@ class UserViewSet(viewsets.ViewSet):
             permissions.ModifyInventory = False
             permissions.UpdateInventory = False
             permissions.DeleteInventory = False
+            permissions.ViewCalculator = False
             permissions.ViewReports = False
             permissions.GenerateReports = False
             permissions.ViewUsers = False

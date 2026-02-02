@@ -34,6 +34,8 @@ const PERMISSION_LABELS: Record<string, string> = {
   ModifyInventory: "Modificar Inventario",
   UpdateInventory: "Actualizar Inventario",
   DeleteInventory: "Eliminar Items",
+  // Calculadora
+  ViewCalculator: "Ver Calculadora",
   // Reportes
   ViewReports: "Ver Reportes",
   GenerateReports: "Generar Reportes",

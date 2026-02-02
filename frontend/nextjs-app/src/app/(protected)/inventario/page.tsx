@@ -22,6 +22,7 @@ import {
   Select,
   Textarea,
 } from "@/components/ui";
+import { PermissionGuard } from "@/components/PermissionGuard";
 import {
   useItems,
   usePlaces,
@@ -217,6 +218,7 @@ export default function InventarioPage() {
   ];
 
   return (
+    <PermissionGuard permission="ViewInventory">
     <div className="space-y-6">
       <Card>
         <Tabs tabs={tabs} />
@@ -303,6 +305,7 @@ export default function InventarioPage() {
         isLoading={deletePlace.isPending}
       />
     </div>
+    </PermissionGuard>
   );
 }
 

@@ -5,6 +5,7 @@ import { FiWifi, FiWifiOff, FiRefreshCw, FiMaximize2, FiPlus } from "react-icons
 import { useSensorData } from "@/hooks/useSensorData";
 import { SensorChart } from "@/components/SensorChart";
 import { Card, Button, Modal, Input, Select } from "@/components/ui";
+import { PermissionGuard } from "@/components/PermissionGuard";
 import { clsx } from "@/lib/utils";
 import { useSensors, useMeasuredVariables, useCreateSensor, useCreateMeasuredVariable } from "@/lib/services/sensorService";
 import type { SensorReading } from "@/hooks/useSensorData";
@@ -147,6 +148,7 @@ export default function SensoresPage() {
     : null;
 
   return (
+    <PermissionGuard permission="ViewDashboard">
     <div className="space-y-6">
       {/* Header with connection status */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -443,5 +445,6 @@ export default function SensoresPage() {
         </div>
       </Modal>
     </div>
+    </PermissionGuard>
   );
 }

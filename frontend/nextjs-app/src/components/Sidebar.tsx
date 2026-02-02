@@ -54,7 +54,7 @@ const navItems: NavItem[] = [
     name: "Calculadora",
     href: "/calculadora",
     icon: <FiCpu className="w-5 h-5" />,
-    permission: "ViewReports",
+    permission: "ViewCalculator",
   },
   {
     name: "Usuarios",
@@ -75,12 +75,21 @@ export function Sidebar() {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
+    // Start with stored user for immediate render
     setUser(authService.getStoredUser());
+    
+    // Then fetch fresh data from server
+    authService.getCurrentUser()
+      .then((freshUser) => setUser(freshUser))
+      .catch(() => {
+        // Keep stored user if API fails
+      });
   }, []);
 
   const hasPermission = (permission?: string): boolean => {
     if (!permission) return true;
-    if (user?.profile?.rol === "ADMIN") return true;
+    // Superusers (Django admins) have all permissions
+    if (user?.is_superuser) return true;
     return user?.profile?.permissions?.[permission] ?? false;
   };
 
