@@ -61,6 +61,11 @@ async function fetchSensorData(sensorId?: number): Promise<SensorData[]> {
   return response.data;
 }
 
+async function fetchSensorDataByFill(fillId: number): Promise<SensorData[]> {
+  const response = await apiClient.get<SensorData[]>(`/api/sensor-data/?fill=${fillId}`);
+  return response.data;
+}
+
 async function fetchMeasuredVariables(): Promise<MeasuredVariable[]> {
   const response = await apiClient.get<MeasuredVariable[]>(
     "/api/measuredVariables/"
@@ -100,6 +105,15 @@ export function useSensorData(sensorId?: number) {
   return useQuery({
     queryKey: [SENSOR_DATA_KEY, sensorId],
     queryFn: () => fetchSensorData(sensorId),
+    staleTime: 30 * 1000, // 30 seconds
+  });
+}
+
+export function useSensorDataByFill(fillId: number) {
+  return useQuery({
+    queryKey: [SENSOR_DATA_KEY, "fill", fillId],
+    queryFn: () => fetchSensorDataByFill(fillId),
+    enabled: !!fillId,
     staleTime: 30 * 1000, // 30 seconds
   });
 }

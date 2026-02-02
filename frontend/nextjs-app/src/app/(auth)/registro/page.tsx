@@ -10,9 +10,7 @@ import { Button, Input } from "@/components/ui";
 import { authService } from "@/lib/auth";
 import type { RegisterData } from "@/types";
 
-interface RegisterFormData extends RegisterData {
-  confirmPassword: string;
-}
+type RegisterFormData = RegisterData;
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -32,8 +30,8 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
-      const { confirmPassword, ...registerData } = data;
-      await authService.register(registerData);
+      console.log("Sending registration data:", data);
+      await authService.register(data);
 
       toast.success(
         "Registro exitoso. Tu cuenta está pendiente de aprobación por un administrador.",
@@ -42,11 +40,31 @@ export default function RegisterPage() {
       router.push("/login");
     } catch (error: unknown) {
       console.error("Register error:", error);
-      const err = error as { response?: { data?: { detail?: string } } };
-      toast.error(
-        err.response?.data?.detail ||
-          "Error al registrar. Verifica los datos e intenta de nuevo."
-      );
+      const err = error as { response?: { data?: Record<string, string | string[]> } };
+      
+      // Handle DRF validation errors which come as field: [errors] or field: error
+      if (err.response?.data) {
+        const errorData = err.response.data;
+        console.error("Server error response:", errorData);
+        
+        // Try to extract meaningful error messages
+        const errorMessages: string[] = [];
+        for (const [field, messages] of Object.entries(errorData)) {
+          if (Array.isArray(messages)) {
+            errorMessages.push(`${field}: ${messages.join(", ")}`);
+          } else if (typeof messages === "string") {
+            errorMessages.push(`${field}: ${messages}`);
+          }
+        }
+        
+        if (errorMessages.length > 0) {
+          toast.error(errorMessages.join("\n"), { duration: 6000 });
+        } else {
+          toast.error("Error al registrar. Verifica los datos e intenta de nuevo.");
+        }
+      } else {
+        toast.error("Error al registrar. Verifica los datos e intenta de nuevo.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -153,8 +171,8 @@ export default function RegisterPage() {
             type={showConfirmPassword ? "text" : "password"}
             placeholder="Repite tu contraseña"
             leftIcon={<FiLock className="w-5 h-5" />}
-            error={errors.confirmPassword?.message}
-            {...register("confirmPassword", {
+            error={errors.password2?.message}
+            {...register("password2", {
               required: "Confirma tu contraseña",
               validate: (value) =>
                 value === password || "Las contraseñas no coinciden",

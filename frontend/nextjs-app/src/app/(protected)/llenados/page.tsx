@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import {
   FiPlus,
@@ -10,6 +10,8 @@ import {
   FiDroplet,
   FiTrendingUp,
   FiActivity,
+  FiThermometer,
+  FiEye,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 import {
@@ -43,8 +45,10 @@ import {
   useEndFill,
 } from "@/lib/services/fillService";
 import { useBasicParams } from "@/lib/services/calculatorService";
+import { useSensorDataByFill, useSensors } from "@/lib/services/sensorService";
+import { useProductionSummary } from "@/lib/services/productionService";
 import { formatDate } from "@/lib/utils";
-import type { Fill, FillCreateData } from "@/types";
+import type { Fill, FillCreateData, SensorData, RealProductionSummary } from "@/types";
 
 // Registrar componentes de Chart.js
 ChartJS.register(
@@ -61,6 +65,7 @@ ChartJS.register(
 export default function LlenadosPage() {
   const { data: fills = [], isLoading } = useFills();
   const { data: materials = [] } = useBasicParams();
+  const { data: sensors = [] } = useSensors();
 
   const createFill = useCreateFill();
   const updateFill = useUpdateFill();
@@ -71,6 +76,40 @@ export default function LlenadosPage() {
   const [editingFill, setEditingFill] = useState<Fill | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [endConfirm, setEndConfirm] = useState<number | null>(null);
+  const [selectedFillForData, setSelectedFillForData] = useState<number | null>(null);
+
+  // Find the active fill
+  const activeFill = fills.find((f) => !f.last_day);
+
+  // Fetch real sensor data for selected fill
+  const { data: fillSensorData = [], isLoading: isLoadingSensorData } = useSensorDataByFill(
+    selectedFillForData || 0
+  );
+
+  // Fetch real production data for the active fill
+  const { data: realProduction, isLoading: isLoadingProduction } = useProductionSummary(
+    activeFill?.id || 0
+  );
+
+  // Set selected fill to active fill by default if available
+  const effectiveFillId = selectedFillForData ?? activeFill?.id ?? null;
+  const selectedFill = fills.find((f) => f.id === effectiveFillId);
+
+  // Group sensor data by sensor for charts
+  const sensorDataGrouped = useMemo(() => {
+    const grouped: Record<string, { name: string; values: number[]; dates: string[] }> = {};
+    
+    fillSensorData.forEach((data: SensorData) => {
+      const sensorName = data.sensor?.name || `Sensor ${data.sensor?.id}`;
+      if (!grouped[sensorName]) {
+        grouped[sensorName] = { name: sensorName, values: [], dates: [] };
+      }
+      grouped[sensorName].values.push(data.value);
+      grouped[sensorName].dates.push(new Date(data.date).toLocaleDateString());
+    });
+    
+    return grouped;
+  }, [fillSensorData]);
 
   const handleCreate = () => {
     setEditingFill(null);
@@ -105,8 +144,6 @@ export default function LlenadosPage() {
       }
     }
   };
-
-  const activeFill = fills.find((f) => !f.last_day);
 
   const columns = [
     {
@@ -147,6 +184,14 @@ export default function LlenadosPage() {
       header: "Acciones",
       render: (fill: Fill) => (
         <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant={selectedFillForData === fill.id ? "primary" : "ghost"}
+            onClick={() => setSelectedFillForData(selectedFillForData === fill.id ? null : fill.id)}
+            leftIcon={<FiEye className="w-4 h-4" />}
+          >
+            Ver Datos
+          </Button>
           {!fill.last_day && (
             <Button
               size="sm"
@@ -207,12 +252,17 @@ export default function LlenadosPage() {
       {/* Production Charts - Only show when there's an active fill with prediction */}
       {activeFill?.prediction && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Cumulative Production Chart */}
+          {/* Cumulative Production Chart - Predicted vs Real */}
           <Card>
             <div className="p-4">
-              <div className="flex items-center gap-2 mb-4">
-                <FiTrendingUp className="w-5 h-5 text-blue-600" />
-                <h3 className="font-semibold text-gray-800">Producción Acumulada</h3>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <FiTrendingUp className="w-5 h-5 text-blue-600" />
+                  <h3 className="font-semibold text-gray-800">Producción Acumulada</h3>
+                </div>
+                {isLoadingProduction && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
+                )}
               </div>
               <div className="h-64">
                 <Line
@@ -220,24 +270,38 @@ export default function LlenadosPage() {
                     labels: activeFill.prediction.cumulative_production.map((_, i) => i + 1),
                     datasets: [
                       {
-                        label: "Producción Acumulada (m³)",
+                        label: "Predicción (m³)",
                         data: activeFill.prediction.cumulative_production,
                         borderColor: "#3b82f6",
                         backgroundColor: "rgba(59, 130, 246, 0.1)",
                         fill: true,
                         tension: 0.4,
                         pointRadius: 0,
+                        borderDash: [5, 5],
                       },
+                      ...(realProduction ? [{
+                        label: "Real (m³)",
+                        data: realProduction.cumulative_values,
+                        borderColor: "#f59e0b",
+                        backgroundColor: "rgba(245, 158, 11, 0.1)",
+                        fill: false,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: "#f59e0b",
+                      }] : []),
                     ],
                   }}
                   options={{
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                      legend: { display: false },
+                      legend: { 
+                        display: !!realProduction,
+                        position: "top" as const,
+                      },
                       tooltip: {
                         callbacks: {
-                          label: (ctx) => `${(ctx.parsed.y ?? 0).toFixed(3)} m³`,
+                          label: (ctx) => `${ctx.dataset.label}: ${(ctx.parsed.y ?? 0).toFixed(3)} m³`,
                           title: (ctx) => `Día ${ctx[0]?.label ?? ''}`,
                         },
                       },
@@ -254,20 +318,33 @@ export default function LlenadosPage() {
                   }}
                 />
               </div>
-              <div className="mt-3 text-center text-sm text-gray-500">
-                Producción potencial total: <span className="font-medium text-blue-600">
-                  {activeFill.prediction.potencial_production.toFixed(3)} m³
-                </span>
+              <div className="mt-3 flex justify-around text-sm">
+                <div className="text-center">
+                  <p className="text-gray-500">Potencial Total</p>
+                  <p className="font-medium text-blue-600">
+                    {activeFill.prediction.potencial_production.toFixed(3)} m³
+                  </p>
+                </div>
+                {realProduction && (
+                  <div className="text-center">
+                    <p className="text-gray-500">Real Acumulado</p>
+                    <p className="font-medium text-amber-600">
+                      {realProduction.total_production.toFixed(3)} m³
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </Card>
 
-          {/* Daily Production Chart */}
+          {/* Daily Production Chart - Predicted vs Real */}
           <Card>
             <div className="p-4">
-              <div className="flex items-center gap-2 mb-4">
-                <FiActivity className="w-5 h-5 text-green-600" />
-                <h3 className="font-semibold text-gray-800">Producción Diaria</h3>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <FiActivity className="w-5 h-5 text-green-600" />
+                  <h3 className="font-semibold text-gray-800">Producción Diaria</h3>
+                </div>
               </div>
               <div className="h-64">
                 <Line
@@ -275,24 +352,38 @@ export default function LlenadosPage() {
                     labels: activeFill.prediction.derivative_production.map((_, i) => i + 1),
                     datasets: [
                       {
-                        label: "Producción Diaria (m³/día)",
+                        label: "Predicción (m³/día)",
                         data: activeFill.prediction.derivative_production,
                         borderColor: "#22c55e",
                         backgroundColor: "rgba(34, 197, 94, 0.1)",
                         fill: true,
                         tension: 0.4,
                         pointRadius: 0,
+                        borderDash: [5, 5],
                       },
+                      ...(realProduction ? [{
+                        label: "Real (m³/día)",
+                        data: realProduction.daily_values,
+                        borderColor: "#ef4444",
+                        backgroundColor: "rgba(239, 68, 68, 0.1)",
+                        fill: false,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: "#ef4444",
+                      }] : []),
                     ],
                   }}
                   options={{
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                      legend: { display: false },
+                      legend: { 
+                        display: !!realProduction,
+                        position: "top" as const,
+                      },
                       tooltip: {
                         callbacks: {
-                          label: (ctx) => `${(ctx.parsed.y ?? 0).toFixed(4)} m³/día`,
+                          label: (ctx) => `${ctx.dataset.label}: ${(ctx.parsed.y ?? 0).toFixed(4)} m³/día`,
                           title: (ctx) => `Día ${ctx[0]?.label ?? ''}`,
                         },
                       },
@@ -322,6 +413,110 @@ export default function LlenadosPage() {
             </div>
           </Card>
         </div>
+      )}
+
+      {/* No Real Data Banner - Show when prediction exists but no real data */}
+      {activeFill?.prediction && !realProduction && !isLoadingProduction && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+              <FiActivity className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="font-medium text-amber-800">Sin datos de producción real</p>
+              <p className="text-sm text-amber-600">
+                Las gráficas muestran solo las predicciones del modelo. Los datos reales se mostrarán cuando estén disponibles.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Real Sensor Data Charts - Show when a fill is selected */}
+      {selectedFillForData && (
+        <Card
+          title={`Datos Reales de Sensores - Llenado #${selectedFillForData}`}
+          subtitle={
+            selectedFill
+              ? `${formatDate(selectedFill.first_day)}${selectedFill.last_day ? ` - ${formatDate(selectedFill.last_day)}` : " (Activo)"}`
+              : ""
+          }
+        >
+          {isLoadingSensorData ? (
+            <div className="p-8 text-center text-gray-500">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              Cargando datos de sensores...
+            </div>
+          ) : fillSensorData.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              <FiThermometer className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <p>No hay datos de sensores registrados para este llenado.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4">
+              {Object.entries(sensorDataGrouped).map(([sensorName, data]) => (
+                <div key={sensorName} className="border rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <FiThermometer className="w-5 h-5 text-purple-600" />
+                    <h4 className="font-semibold text-gray-800">{sensorName}</h4>
+                    <Badge variant="info">{data.values.length} lecturas</Badge>
+                  </div>
+                  <div className="h-48">
+                    <Line
+                      data={{
+                        labels: data.dates,
+                        datasets: [
+                          {
+                            label: sensorName,
+                            data: data.values,
+                            borderColor: "#8b5cf6",
+                            backgroundColor: "rgba(139, 92, 246, 0.1)",
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 2,
+                          },
+                        ],
+                      }}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: { display: false },
+                          tooltip: {
+                            callbacks: {
+                              label: (ctx) => `${(ctx.parsed.y ?? 0).toFixed(2)}`,
+                            },
+                          },
+                        },
+                        scales: {
+                          x: {
+                            ticks: { maxTicksLimit: 6 },
+                          },
+                        },
+                      }}
+                    />
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-xs text-center">
+                    <div>
+                      <p className="text-gray-500">Mín</p>
+                      <p className="font-medium">{Math.min(...data.values).toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Promedio</p>
+                      <p className="font-medium">
+                        {(data.values.reduce((a, b) => a + b, 0) / data.values.length).toFixed(2)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Máx</p>
+                      <p className="font-medium">{Math.max(...data.values).toFixed(2)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
       )}
 
       {/* Main Card */}

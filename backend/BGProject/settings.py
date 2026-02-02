@@ -37,7 +37,8 @@ DEBUG = _env_debug in ('1', 'true', 'yes', 'on')
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
-    "localhost"
+    "localhost",
+    "backend",  # Docker service name
 ]
 
 # Application definition

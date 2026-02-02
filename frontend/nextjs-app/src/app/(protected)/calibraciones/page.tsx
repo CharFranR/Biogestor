@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FiPlus, FiEdit2, FiTrash2, FiSliders } from "react-icons/fi";
 import toast from "react-hot-toast";
@@ -22,7 +22,7 @@ import {
 } from "@/lib/services/calibrationService";
 import { useSensors } from "@/lib/services/sensorService";
 import { formatDate } from "@/lib/utils";
-import type { Calibration, CalibrationCreateData } from "@/types";
+import type { Calibration, CalibrationCreateData, Sensor } from "@/types";
 
 export default function CalibracionesPage() {
   const { data: calibrations = [], isLoading } = useCalibrations();
@@ -66,40 +66,28 @@ export default function CalibracionesPage() {
       render: (cal: Calibration) => formatDate(cal.date),
     },
     {
-      key: "sensor",
+      key: "sensorId",
       header: "Sensor",
       render: (cal: Calibration) => {
-        const sensor = sensors.find((s) => s.id === cal.sensor);
-        return sensor?.name || `ID: ${cal.sensor}`;
+        const sensor = sensors.find((s) => s.id === cal.sensorId);
+        return sensor?.name || `ID: ${cal.sensorId}`;
       },
     },
     {
-      key: "standard_value",
-      header: "Valor Estándar",
-      render: (cal: Calibration) => cal.standard_value.toFixed(3),
+      key: "params",
+      header: "Parámetros",
+      render: (cal: Calibration) => cal.params,
     },
     {
-      key: "measured_value",
-      header: "Valor Medido",
-      render: (cal: Calibration) => cal.measured_value.toFixed(3),
+      key: "result",
+      header: "Resultado",
+      render: (cal: Calibration) => cal.result,
     },
     {
-      key: "error",
-      header: "Error (%)",
-      render: (cal: Calibration) => (
-        <span
-          className={
-            Math.abs(cal.error) > 5 ? "text-red-500 font-medium" : "text-green-600"
-          }
-        >
-          {cal.error.toFixed(2)}%
-        </span>
-      ),
-    },
-    {
-      key: "calibrated_by",
-      header: "Calibrado Por",
-      render: (cal: Calibration) => cal.calibrated_by || "-",
+      key: "previous_calibration",
+      header: "Calibración Anterior",
+      render: (cal: Calibration) =>
+        cal.previous_calibration ? formatDate(cal.previous_calibration) : "-",
     },
     {
       key: "actions",
@@ -187,7 +175,7 @@ interface CalibrationFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   calibration: Calibration | null;
-  sensors: { id: number; name: string }[];
+  sensors: Sensor[];
   onCreate: (data: CalibrationCreateData) => Promise<void>;
   onUpdate: (id: number, data: Partial<CalibrationCreateData>) => Promise<void>;
   isSubmitting: boolean;
@@ -206,41 +194,33 @@ function CalibrationFormModal({
     register,
     handleSubmit,
     reset,
-    watch,
-    setValue,
     formState: { errors },
-  } = useForm<CalibrationCreateData>({
-    defaultValues: calibration
-      ? {
-          sensor: calibration.sensor,
+  } = useForm<CalibrationCreateData>();
+
+  // Reset form when modal opens/closes or calibration changes
+  useEffect(() => {
+    if (isOpen) {
+      if (calibration) {
+        reset({
+          userId: calibration.userId,
+          sensorId: calibration.sensorId,
           date: calibration.date,
-          standard_value: calibration.standard_value,
-          measured_value: calibration.measured_value,
-          error: calibration.error,
-          observations: calibration.observations || "",
-          calibrated_by: calibration.calibrated_by || "",
-        }
-      : {
-          sensor: sensors[0]?.id || 0,
+          params: calibration.params,
+          note: calibration.note,
+          result: calibration.result,
+        });
+      } else {
+        reset({
+          userId: 1, // TODO: Get from auth context
+          sensorId: sensors[0]?.id || 0,
           date: new Date().toISOString().split("T")[0],
-          standard_value: 0,
-          measured_value: 0,
-          error: 0,
-          observations: "",
-          calibrated_by: "",
-        },
-  });
-
-  const standardValue = watch("standard_value");
-  const measuredValue = watch("measured_value");
-
-  // Auto-calculate error
-  const calculateError = () => {
-    if (standardValue && measuredValue && standardValue !== 0) {
-      const error = ((measuredValue - standardValue) / standardValue) * 100;
-      setValue("error", parseFloat(error.toFixed(4)));
+          params: "",
+          note: "",
+          result: "",
+        });
+      }
     }
-  };
+  }, [isOpen, calibration, sensors, reset]);
 
   const onSubmit = async (data: CalibrationCreateData) => {
     try {
@@ -284,8 +264,8 @@ function CalibrationFormModal({
               value: s.id,
               label: s.name,
             }))}
-            error={errors.sensor?.message}
-            {...register("sensor", {
+            error={errors.sensorId?.message}
+            {...register("sensorId", {
               required: "El sensor es requerido",
               valueAsNumber: true,
             })}
@@ -300,55 +280,43 @@ function CalibrationFormModal({
             })}
           />
 
-          <Input
-            label="Valor Estándar"
-            type="number"
-            step="0.0001"
-            error={errors.standard_value?.message}
-            {...register("standard_value", {
-              required: "El valor estándar es requerido",
-              valueAsNumber: true,
-              onBlur: calculateError,
-            })}
-          />
+          <div className="sm:col-span-2">
+            <Input
+              label="Parámetros"
+              type="text"
+              placeholder="Ej: pH 4.0, pH 7.0, pH 10.0"
+              error={errors.params?.message}
+              {...register("params", {
+                required: "Los parámetros son requeridos",
+              })}
+            />
+          </div>
 
-          <Input
-            label="Valor Medido"
-            type="number"
-            step="0.0001"
-            error={errors.measured_value?.message}
-            {...register("measured_value", {
-              required: "El valor medido es requerido",
-              valueAsNumber: true,
-              onBlur: calculateError,
-            })}
-          />
-
-          <Input
-            label="Error (%)"
-            type="number"
-            step="0.0001"
-            error={errors.error?.message}
-            {...register("error", {
-              required: "El error es requerido",
-              valueAsNumber: true,
-            })}
-          />
-
-          <Input
-            label="Calibrado Por"
-            type="text"
-            placeholder="Nombre del técnico"
-            {...register("calibrated_by")}
-          />
+          <div className="sm:col-span-2">
+            <Input
+              label="Resultado"
+              type="text"
+              placeholder="Ej: Calibración exitosa, error < 0.1%"
+              error={errors.result?.message}
+              {...register("result", {
+                required: "El resultado es requerido",
+              })}
+            />
+          </div>
         </div>
 
         <Textarea
-          label="Observaciones"
-          placeholder="Notas adicionales sobre la calibración..."
+          label="Notas"
+          placeholder="Observaciones adicionales sobre la calibración..."
           rows={3}
-          {...register("observations")}
+          {...register("note", {
+            required: "Las notas son requeridas",
+          })}
+          error={errors.note?.message}
         />
+
+        {/* Hidden field for userId - in production, get from auth context */}
+        <input type="hidden" {...register("userId", { valueAsNumber: true })} />
       </form>
     </Modal>
   );

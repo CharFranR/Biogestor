@@ -37,8 +37,9 @@ export interface RegisterData {
   username: string;
   email: string;
   password: string;
+  password2: string;
   first_name: string;
-  last_name: string;
+  last_name: string;  
 }
 
 export interface AuthResponse {
@@ -78,10 +79,10 @@ export interface Sensor {
 
 export interface SensorData {
   id: number;
-  sensor: number;
+  sensor: Sensor;
   value: number;
-  timestamp: string;
-  fill?: number | null;
+  date: string;
+  fill?: Fill | null;
 }
 
 export interface SensorCreateData {
@@ -136,30 +137,46 @@ export interface FillCreateData {
   delay_time: number;
 }
 
+// Real production data point (from gas flow sensor)
+export interface RealProductionData {
+  id: number;
+  fill: number;
+  date: string;
+  daily_production: number;      // m³/día - producción diaria medida
+  cumulative_production: number; // m³ - producción acumulada calculada
+}
+
+// Aggregated real production for charts
+export interface RealProductionSummary {
+  fill_id: number;
+  dates: string[];
+  daily_values: number[];
+  cumulative_values: number[];
+  total_production: number;
+}
+
 // ============================================
 // Calibration Types
 // ============================================
 
 export interface Calibration {
   id: number;
-  sensor: number;
-  sensor_name?: string;
+  userId: number;
+  sensorId: number;
   date: string;
-  standard_value: number;
-  measured_value: number;
-  error: number;
-  observations?: string | null;
-  calibrated_by?: string | null;
+  params: string;
+  note: string;
+  result: string;
+  previous_calibration: string | null;
 }
 
 export interface CalibrationCreateData {
-  sensor: number;
+  userId: number;
+  sensorId: number;
   date: string;
-  standard_value: number;
-  measured_value: number;
-  error: number;
-  observations?: string;
-  calibrated_by?: string;
+  params: string;
+  note: string;
+  result: string;
 }
 
 // ============================================

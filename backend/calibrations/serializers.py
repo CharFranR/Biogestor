@@ -4,7 +4,7 @@ from .models import Calibration
 class CalibrationSerializer (serializers.ModelSerializer):
     class Meta:
         model = Calibration
-        field = ('id', 'userId', 'sensorId', 'date', 'params', 'note', 'result', 'previous_calibration')
+        fields = ('id', 'userId', 'sensorId', 'date', 'params', 'note', 'result', 'previous_calibration')
 
     def create(self, validated_data):
         last_calibration = Calibration.objects.filter(sensorId=validated_data['sensorId']).order_by('-date').first()

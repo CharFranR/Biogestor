@@ -3,6 +3,10 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Build argument for API URL (needed for Next.js rewrites at build time)
+ARG NEXT_PUBLIC_API_URL=http://backend:8000
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Copy package files
 COPY package.json package-lock.json ./
 
