@@ -11,6 +11,7 @@ class Permissions(models.Model):
 
     # Dashboard and Sensors
     ViewDashboard = models.BooleanField(default=False)
+    ViewFillData = models.BooleanField(default=False)
 
     # Calibrations
     ViewCalibrations = models.BooleanField(default=False)

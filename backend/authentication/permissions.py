@@ -69,3 +69,8 @@ class AllowModifyInventory(permissions.BasePermission):
     def has_permission(self, request, view):
         return _user_has_permission_flag(request, "ModifyInventory")
 
+class AllowViewFillData(permissions.BasePermission):
+    """Allow view sensor data in real time"""
+
+    def has_permission(self, request, view):
+        return _user_has_permission_flag(request, "ViewFillData")
