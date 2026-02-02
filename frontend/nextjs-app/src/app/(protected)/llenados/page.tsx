@@ -14,6 +14,7 @@ import {
   FiEye,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
+import { PermissionGuard } from "@/components/PermissionGuard";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -222,6 +223,7 @@ export default function LlenadosPage() {
   ];
 
   return (
+    <PermissionGuard permission="ViewFillData">
     <div className="space-y-6">
       {/* Active Fill Banner */}
       {activeFill && (
@@ -589,6 +591,7 @@ export default function LlenadosPage() {
         isLoading={endFill.isPending}
       />
     </div>
+    </PermissionGuard>
   );
 }
 

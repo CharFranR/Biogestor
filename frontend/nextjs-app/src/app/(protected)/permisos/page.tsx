@@ -15,14 +15,14 @@ import {
 import type { User, UserPermissions } from "@/types";
 
 const PERMISSION_LABELS: Record<string, string> = {
-  VerDashboard: "Ver Dashboard",
-  GestionarSensores: "Gestionar Sensores",
-  GestionarCalibraciones: "Gestionar Calibraciones",
-  GestionarInventario: "Gestionar Inventario",
-  GestionarLlenados: "Gestionar Llenados",
-  VerCalculadora: "Ver Calculadora",
-  AprobarUsuarios: "Aprobar Usuarios",
-  GestionarPermisos: "Gestionar Permisos",
+  ApproveUsers: "Aprobar Usuarios",
+  ViewReports: "Ver Reportes",
+  GenerateReports: "Generar Reportes",
+  ViewDashboard: "Ver Dashboard/Sensores",
+  ViewFillData: "Ver Llenados",
+  ViewCalibrations: "Ver Calibraciones",
+  ViewInventory: "Ver Inventario",
+  ModifyInventory: "Modificar Inventario",
 };
 
 const ROLE_OPTIONS = [

@@ -191,6 +191,7 @@ class UserViewSet(viewsets.ViewSet):
             permissions.ViewReports = True
             permissions.GenerateReports = True
             permissions.ViewDashboard = True
+            permissions.ViewFillData = True
             permissions.ViewCalibrations = True
             permissions.ViewInventory = True
             permissions.ModifyInventory = True
@@ -199,6 +200,7 @@ class UserViewSet(viewsets.ViewSet):
             permissions.ViewReports = True
             permissions.GenerateReports = False
             permissions.ViewDashboard = True
+            permissions.ViewFillData = True
             permissions.ViewCalibrations = True
             permissions.ViewInventory = False
             permissions.ModifyInventory = False
@@ -207,6 +209,7 @@ class UserViewSet(viewsets.ViewSet):
             permissions.ViewReports = False
             permissions.GenerateReports = False
             permissions.ViewDashboard = False
+            permissions.ViewFillData = False
             permissions.ViewCalibrations = False
             permissions.ViewInventory = False
             permissions.ModifyInventory = False

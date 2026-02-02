@@ -22,6 +22,7 @@ export interface UserPermissions {
   ViewReports?: boolean;
   GenerateReports?: boolean;
   ViewDashboard?: boolean;
+  ViewFillData?: boolean;
   ViewCalibrations?: boolean;
   ViewInventory?: boolean;
   ModifyInventory?: boolean;
