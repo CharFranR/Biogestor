@@ -216,7 +216,8 @@ export interface Item {
   name: string;
   description?: string | null;
   quantity: number;
-  unit: string;
+  measurement: string;
+  unit?: string;
   place: number;
   place_name?: string;
   last_updated?: string;
@@ -226,7 +227,7 @@ export interface ItemCreateData {
   name: string;
   description?: string;
   quantity: number;
-  unit: string;
+  measurement: string;
   place: number;
 }
 

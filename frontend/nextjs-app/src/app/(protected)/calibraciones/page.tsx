@@ -60,6 +60,13 @@ export default function CalibracionesPage() {
     }
   };
 
+  const renderPreviousCalibration = (value: string | null) => {
+    if (!value) return "-";
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) return value;
+    return formatDate(value);
+  };
+
   const columns = [
     {
       key: "date",
@@ -87,27 +94,30 @@ export default function CalibracionesPage() {
     {
       key: "previous_calibration",
       header: "Calibración Anterior",
-      render: (cal: Calibration) =>
-        cal.previous_calibration ? formatDate(cal.previous_calibration) : "-",
+      render: (cal: Calibration) => renderPreviousCalibration(cal.previous_calibration),
     },
     {
       key: "actions",
       header: "Acciones",
       render: (cal: Calibration) => (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             size="sm"
             variant="ghost"
             onClick={() => handleEdit(cal)}
             leftIcon={<FiEdit2 className="w-4 h-4" />}
+            className="w-full sm:w-auto"
           >
-            Editar
+            <span className="hidden sm:inline">Editar</span>
           </Button>
           <Button
             size="sm"
             variant="ghost"
             onClick={() => setDeleteConfirm(cal.id)}
             leftIcon={<FiTrash2 className="w-4 h-4 text-red-500" />}
+            className="w-full sm:w-auto"
+            aria-label="Eliminar calibración"
+            title="Eliminar"
           />
         </div>
       ),
@@ -116,12 +126,12 @@ export default function CalibracionesPage() {
 
   return (
     <PermissionGuard permission="ViewCalibrations">
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <Card
         title="Calibraciones de Sensores"
         subtitle="Registro histórico de calibraciones realizadas"
         headerAction={
-          <Button onClick={handleCreate} leftIcon={<FiPlus className="w-4 h-4" />}>
+          <Button onClick={handleCreate} leftIcon={<FiPlus className="w-4 h-4" />} className="w-full sm:w-auto">
             Nueva Calibración
           </Button>
         }
@@ -245,7 +255,7 @@ function CalibrationFormModal({
       title={calibration ? "Editar Calibración" : "Nueva Calibración"}
       size="lg"
       footer={
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
           <Button variant="ghost" onClick={onClose}>
             Cancelar
           </Button>

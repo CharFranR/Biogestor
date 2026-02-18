@@ -69,7 +69,7 @@ export default function InventarioPage() {
     {
       key: "quantity",
       header: "Cantidad",
-      render: (item: Item) => `${item.quantity} ${item.unit}`,
+      render: (item: Item) => `${item.quantity} ${item.measurement || item.unit || ""}`,
     },
     {
       key: "place",
@@ -89,7 +89,7 @@ export default function InventarioPage() {
       key: "actions",
       header: "Acciones",
       render: (item: Item) => (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             size="sm"
             variant="ghost"
@@ -98,14 +98,18 @@ export default function InventarioPage() {
               setIsItemModalOpen(true);
             }}
             leftIcon={<FiEdit2 className="w-4 h-4" />}
+            className="w-full sm:w-auto"
           >
-            Editar
+            <span className="hidden sm:inline">Editar</span>
           </Button>
           <Button
             size="sm"
             variant="ghost"
             onClick={() => setDeleteItemConfirm(item.id)}
             leftIcon={<FiTrash2 className="w-4 h-4 text-red-500" />}
+            className="w-full sm:w-auto"
+            aria-label="Eliminar item"
+            title="Eliminar"
           />
         </div>
       ),
@@ -128,15 +132,16 @@ export default function InventarioPage() {
       key: "actions",
       header: "Acciones",
       render: (place: Place) => (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             size="sm"
             variant="outline"
             onClick={() => handleExportReport(place.id)}
             isLoading={generateReport.isPending}
             leftIcon={<FiDownload className="w-4 h-4" />}
+            className="w-full sm:w-auto"
           >
-            PDF
+            <span className="hidden sm:inline">PDF</span>
           </Button>
           <Button
             size="sm"
@@ -146,14 +151,18 @@ export default function InventarioPage() {
               setIsPlaceModalOpen(true);
             }}
             leftIcon={<FiEdit2 className="w-4 h-4" />}
+            className="w-full sm:w-auto"
           >
-            Editar
+            <span className="hidden sm:inline">Editar</span>
           </Button>
           <Button
             size="sm"
             variant="ghost"
             onClick={() => setDeletePlaceConfirm(place.id)}
             leftIcon={<FiTrash2 className="w-4 h-4 text-red-500" />}
+            className="w-full sm:w-auto"
+            aria-label="Eliminar ubicación"
+            title="Eliminar"
           />
         </div>
       ),
@@ -174,6 +183,7 @@ export default function InventarioPage() {
                 setIsItemModalOpen(true);
               }}
               leftIcon={<FiPlus className="w-4 h-4" />}
+              className="w-full sm:w-auto"
             >
               Nuevo Item
             </Button>
@@ -201,6 +211,7 @@ export default function InventarioPage() {
                 setIsPlaceModalOpen(true);
               }}
               leftIcon={<FiPlus className="w-4 h-4" />}
+              className="w-full sm:w-auto"
             >
               Nueva Ubicación
             </Button>
@@ -219,7 +230,7 @@ export default function InventarioPage() {
 
   return (
     <PermissionGuard permission="ViewInventory">
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <Card>
         <Tabs tabs={tabs} />
       </Card>
@@ -339,14 +350,14 @@ function ItemFormModal({
           name: item.name,
           description: item.description || "",
           quantity: item.quantity,
-          unit: item.unit,
+          measurement: item.measurement || item.unit || "",
           place: item.place,
         }
       : {
           name: "",
           description: "",
           quantity: 1,
-          unit: "unidad",
+          measurement: "unidad",
           place: places[0]?.id || 0,
         },
   });
@@ -371,7 +382,7 @@ function ItemFormModal({
       title={item ? "Editar Item" : "Nuevo Item"}
       size="md"
       footer={
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
           <Button variant="ghost" onClick={onClose}>
             Cancelar
           </Button>
@@ -392,7 +403,7 @@ function ItemFormModal({
           {...register("name", { required: "El nombre es requerido" })}
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
             label="Cantidad"
             type="number"
@@ -408,8 +419,8 @@ function ItemFormModal({
           <Input
             label="Unidad"
             placeholder="unidad, kg, L, etc."
-            error={errors.unit?.message}
-            {...register("unit", { required: "La unidad es requerida" })}
+            error={errors.measurement?.message}
+            {...register("measurement", { required: "La unidad es requerida" })}
           />
         </div>
 
@@ -488,7 +499,7 @@ function PlaceFormModal({
       title={place ? "Editar Ubicación" : "Nueva Ubicación"}
       size="md"
       footer={
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
           <Button variant="ghost" onClick={onClose}>
             Cancelar
           </Button>

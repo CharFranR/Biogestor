@@ -28,20 +28,22 @@ export function Card({
       )}
     >
       {(title || headerAction) && (
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            {icon && <span className="text-primary-400">{icon}</span>}
-            {title && (
-              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-            )}
-            {subtitle && (
-              <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>
-            )}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-6 py-4 border-b border-gray-100">
+          <div className="flex items-start gap-2">
+            {icon && <span className="text-primary-400 mt-0.5">{icon}</span>}
+            <div>
+              {title && (
+                <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+              )}
+              {subtitle && (
+                <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>
+              )}
+            </div>
           </div>
-          {headerAction && <div>{headerAction}</div>}
+          {headerAction && <div className="w-full sm:w-auto">{headerAction}</div>}
         </div>
       )}
-      <div className={noPadding ? "" : "p-6"}>{children}</div>
+      <div className={noPadding ? "" : "p-4 sm:p-6"}>{children}</div>
     </div>
   );
 }

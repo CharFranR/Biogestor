@@ -4,18 +4,35 @@ import type { Calibration, CalibrationCreateData } from "@/types";
 
 const CALIBRATIONS_KEY = "calibrations";
 
+type ApiCalibration = Omit<Calibration, "sensorId" | "userId" | "previous_calibration"> & {
+  userId?: number | string;
+  sensorId?: number | string;
+  previous_calibration?: string | null;
+  previousCalibration?: string | null;
+};
+
+function normalizeCalibration(calibration: ApiCalibration): Calibration {
+  return {
+    ...calibration,
+    userId: Number(calibration.userId ?? 0),
+    sensorId: Number(calibration.sensorId ?? 0),
+    previous_calibration:
+      calibration.previous_calibration ?? calibration.previousCalibration ?? null,
+  };
+}
+
 // ============================================
 // API Functions
 // ============================================
 
 async function fetchCalibrations(): Promise<Calibration[]> {
-  const response = await apiClient.get<Calibration[]>("/api/calibration/");
-  return response.data;
+  const response = await apiClient.get<ApiCalibration[]>("/api/calibration/");
+  return response.data.map(normalizeCalibration);
 }
 
 async function fetchCalibration(id: number): Promise<Calibration> {
-  const response = await apiClient.get<Calibration>(`/api/calibration/${id}/`);
-  return response.data;
+  const response = await apiClient.get<ApiCalibration>(`/api/calibration/${id}/`);
+  return normalizeCalibration(response.data);
 }
 
 async function createCalibration(

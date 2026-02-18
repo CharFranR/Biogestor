@@ -5,18 +5,31 @@ import type { Item, Place, ItemCreateData, PlaceCreateData } from "@/types";
 const ITEMS_KEY = "items";
 const PLACES_KEY = "places";
 
+type ApiItem = Omit<Item, "measurement"> & {
+  measurement?: string;
+  unit?: string;
+};
+
+function normalizeItem(item: ApiItem): Item {
+  const measurement = item.measurement || item.unit || "";
+  return {
+    ...item,
+    measurement,
+  };
+}
+
 // ============================================
 // API Functions - Items
 // ============================================
 
 async function fetchItems(): Promise<Item[]> {
-  const response = await apiClient.get<Item[]>("/api/items/");
-  return response.data;
+  const response = await apiClient.get<ApiItem[]>("/api/items/");
+  return response.data.map(normalizeItem);
 }
 
 async function fetchItem(id: number): Promise<Item> {
-  const response = await apiClient.get<Item>(`/api/items/${id}/`);
-  return response.data;
+  const response = await apiClient.get<ApiItem>(`/api/items/${id}/`);
+  return normalizeItem(response.data);
 }
 
 async function createItem(data: ItemCreateData): Promise<Item> {
