@@ -10,3 +10,4 @@ class items (models.Model):
     measurement = models.CharField(max_length=200)
     quantity = models.IntegerField()
     place = models.ForeignKey(place, on_delete=models.CASCADE)
+    description = models.CharField(max_length=200, blank=True, null=True)
