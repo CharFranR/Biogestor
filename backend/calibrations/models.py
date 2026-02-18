@@ -7,4 +7,4 @@ class Calibration (models.Model):
     params = models.CharField(max_length=200)
     note = models.TextField()
     result = models.TextField()
-    previous_calibration = models.DateField()
+    previous_calibration = models.DateField(null=True, blank=True)

@@ -1,0 +1,7 @@
+Notas de la versión 0102
+
+Manejo de permisos: El manejo de servicios se ha actualizado incluyendo permisos necesarios que no habian sido considerados.
+Frontend: El frontend se coneta correctamente con los endpoints del backend, ademas se ha mejorado la experiencia para el admin respecto a los Usuarios.
+
+
+Falta por integrar: Generacion de reportes, sistema de alarmas y panel para agregar nuevos insumos de llenado

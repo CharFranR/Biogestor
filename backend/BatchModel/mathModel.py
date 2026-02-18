@@ -93,6 +93,6 @@ def simulation (basic_params, filling_mass, filling_moisture, temperature,
     # get new concentration
     t_concentration = t_concentration - t_cumulative_production
 
-    data = total_solids, total_volatile_solids, potencial_production, max_mu, solvent_volume, initial_concentration, specific_mu, cumulative_production, derivative_production
+  data = total_solids, total_volatile_solids, potencial_production, max_mu, solvent_volume, initial_concentration, specific_mu, cumulative_production, derivative_production
 
   return data

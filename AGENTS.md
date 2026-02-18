@@ -20,10 +20,10 @@ Este archivo proporciona contexto y directrices para que agentes de IA (como Git
 ```
 proyecto/
 ├── backend/          # Django REST Framework + Channels
-├── frontend/         # (En desarrollo - será reemplazado)
-├── Docs/            # Documentación
-├── scripts/         # Utilidades (simulador MQTT)
-├── mosquitto/       # Configuración broker MQTT
+├── frontend/         # Next.js 14+
+├── docs/             # Documentación
+├── scripts/          # Utilidades (simulador MQTT)
+├── mosquitto/        # Configuración broker MQTT
 ├── docker-compose.yml
 └── nginx.conf
 ```
@@ -44,6 +44,21 @@ proyecto/
 | paho-mqtt | Cliente MQTT Python |
 | reportlab | Generación de PDFs |
 | pandas/numpy | Cálculos numéricos |
+
+---
+
+## ✨ Stack Tecnológico del Frontend
+
+| Tecnología      | Propósito                     |
+|-----------------|-------------------------------|
+| Next.js 14+     | Framework React (App Router)  |
+| TypeScript      | Tipado estático               |
+| Tailwind CSS    | Estilos                       |
+| React Query     | Gestión de estado del servidor|
+| Axios           | Cliente HTTP                  |
+| Chart.js        | Gráficas                      |
+| react-hook-form | Formularios                   |
+| js-cookie       | Gestión de cookies (auth)     |
 
 ---
 
@@ -98,6 +113,47 @@ backend/
 ├── manage.py
 ├── requirements.txt
 └── Dockerfile
+```
+
+---
+
+## 📁 Estructura del Frontend (Next.js)
+
+```
+frontend/nextjs-app/
+├── src/
+│   ├── app/
+│   │   ├── (auth)/            # Rutas de autenticación (login, registro)
+│   │   └── (protected)/       # Rutas protegidas por middleware
+│   │       ├── sensores/
+│   │       ├── perfil/
+│   │       ├── permisos/
+│   │       └── ...
+│   │
+│   ├── components/
+│   │   ├── ui/                # Componentes UI reutilizables (Button, Card, etc.)
+│   │   ├── Header.tsx
+│   │   ├── Sidebar.tsx
+│   │   └── SensorChart.tsx
+│   │
+│   ├── hooks/
+│   │   ├── useWebSocket.ts    # Hook para conexión WebSocket
+│   │   └── useSensorData.ts   # Hook para procesar datos de sensores
+│   │
+│   ├── lib/
+│   │   ├── apiClient.ts       # Cliente Axios con interceptores para JWT
+│   │   ├── auth.ts            # Lógica de autenticación (login, logout)
+│   │   └── services/          # Servicios para interactuar con la API (React Query)
+│   │
+│   ├── providers/
+│   │   └── Providers.tsx      # Proveedor de React Query
+│   │
+│   ├── types/
+│   │   └── index.ts           # Definiciones de tipos TypeScript
+│   │
+│   └── middleware.ts          # Middleware para proteger rutas
+│
+└── ...
 ```
 
 ---
@@ -215,7 +271,7 @@ MqttSub.py (suscriptor)
     ↓ (almacena últimos 30 valores)
 Redis
     ↓
-websocketService.py → WebSocket → Frontend
+websocketService.py → WebSocket → Frontend (Next.js)
     ↓ (cada 5 segundos)
 PostgreSQL (persistencia)
 ```
@@ -226,6 +282,7 @@ PostgreSQL (persistencia)
 
 Servicios disponibles:
 - `backend` - Django + Daphne (puerto 8000)
+- `frontend` - Next.js (puerto 3000, a través de Nginx)
 - `db` - PostgreSQL (puerto 5432)
 - `redis` - Redis (puerto 6379)
 - `mosquitto` - MQTT Broker (puerto 1883)
@@ -237,65 +294,53 @@ Servicios disponibles:
 ## 🧪 Testing
 
 ```bash
-# Ejecutar todos los tests
+# Ejecutar todos los tests del backend
 pytest
 
 # Tests por app
 pytest BatchModel/
-pytest dataSensor/
-pytest Fill/
-pytest calibrations/
-pytest inventario/
-pytest authentication/
+# ... etc
 
-# Con cobertura
-pytest --cov=.
+# Frontend tests (si se implementan)
+npm test --prefix frontend/nextjs-app
 ```
 
 ---
 
 ## 📝 Directrices para Agentes de IA
 
-### Al modificar código:
+### Al modificar código de Backend:
 
-1. **No modificar** las apps `authentication` y `usuarios` sin contexto explícito
-2. **Mantener** la estructura de ViewSets de DRF existente
-3. **Usar** los serializers para validación de datos
-4. **Respetar** las relaciones de ForeignKey existentes
-5. **Seguir** el patrón de URLs con routers de DRF
+1. **No modificar** las apps `authentication` y `usuarios` sin contexto explícito.
+2. **Mantener** la estructura de ViewSets y Serializers de DRF.
+3. **Respetar** las relaciones de ForeignKey existentes.
+4. **Seguir** el patrón de URLs con routers de DRF.
+
+### Al modificar código de Frontend:
+
+1. **Usar** los hooks de React Query (`useXXX`) para fetching de datos. No usar `fetch` o `axios` directamente en los componentes.
+2. **Crear/modificar** servicios en `src/lib/services` para encapsular la lógica de API.
+3. **Mantener** la separación de rutas `(auth)` y `(protected)`.
+4. **Añadir** nuevos tipos en `src/types/index.ts` si se modifican los modelos de datos.
+5. **Utilizar** los componentes de `src/components/ui` para mantener la consistencia visual.
 
 ### Al agregar nuevas funcionalidades:
 
-1. Crear una nueva app Django si es una funcionalidad independiente
-2. Registrar la app en `INSTALLED_APPS` de `settings.py`
-3. Incluir las URLs en `BGProject/urls.py`
-4. Documentar los nuevos endpoints
-5. Agregar tests en el archivo `test_*.py` de la app
-
-### Al trabajar con MQTT/WebSockets:
-
-1. Los sensores publican en `Biogestor/{mqtt_code}`
-2. Redis almacena los últimos 30 valores por sensor
-3. El WebSocket está en `ws://host/ws/dataSensor/`
-4. Los datos se persisten cada 5 segundos (configurable en `save_time`)
-
-### Convenciones de código:
-
-- Nombres de modelos: PascalCase
-- Nombres de campos: snake_case
-- ViewSets: `{Model}ViewSet`
-- Serializers: `{Model}Serializer`
-- URLs: kebab-case o camelCase según el modelo
+1. **Backend**: Crear una nueva app Django, registrarla, documentar endpoints y agregar tests.
+2. **Frontend**:
+   - Añadir una nueva ruta en `src/app/(protected)/`.
+   - Crear el servicio API correspondiente en `src/lib/services/`.
+   - Implementar la UI usando los componentes y hooks existentes.
 
 ---
 
 ## ⚠️ Notas Importantes
 
-1. **El frontend será reemplazado** - No invertir esfuerzo en el frontend actual
-2. **Base de datos PostgreSQL** - No usar SQLite en producción
-3. **Redis requerido** - Para WebSockets y cache de MQTT
-4. **Daphne obligatorio** - Para soporte de WebSockets (no usar runserver)
-5. **El simulador MQTT** está en `scripts/mqtt_simulator.py` para pruebas
+1. **Frontend en Next.js**: El frontend principal es `frontend/nextjs-app`. El directorio `frontend/react-app` está obsoleto.
+2. **Base de datos PostgreSQL**: No usar SQLite en producción.
+3. **Redis requerido**: Para WebSockets y cache de MQTT.
+4. **Daphne obligatorio**: Para soporte de WebSockets en el backend.
+5. **Simulador MQTT**: Disponible en `scripts/mqtt_simulator.py` para pruebas.
 
 ---
 
@@ -306,11 +351,14 @@ pytest --cov=.
 | `BGProject/settings.py` | Configuración Django |
 | `BGProject/urls.py` | Rutas API principales |
 | `dataSensor/MqttSub.py` | Suscriptor MQTT |
-| `dataSensor/consumers.py` | WebSocket consumer |
+| `dataSensor/consumers.py`| WebSocket consumer |
 | `BatchModel/mathModel.py` | Modelo matemático |
+| `frontend/nextjs-app/src/middleware.ts` | Protección de rutas del frontend |
+| `frontend/nextjs-app/src/lib/apiClient.ts` | Cliente Axios para la API |
 | `docker-compose.yml` | Orquestación de servicios |
 | `requirements.txt` | Dependencias Python |
+| `frontend/nextjs-app/package.json` | Dependencias JavaScript |
 
 ---
 
-*Última actualización: 29 de enero de 2026*
+*Última actualización: 30 de enero de 2026*

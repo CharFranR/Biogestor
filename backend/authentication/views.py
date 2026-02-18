@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -19,26 +18,107 @@ from .serializers import (
 
 User = get_user_model()
 
+# ============================================================================
+# Permission field names for role assignment
+# ============================================================================
+ALL_PERMISSION_FIELDS = [
+    "ViewDashboard",
+    "ViewFillData",
+    "CreateFill",
+    "EndFill",
+    "ViewCalibrations",
+    "CreateCalibrations",
+    "ModifyCalibrations",
+    "UpdateCalibrations",
+    "DeleteCalibrations",
+    "ViewInventory",
+    "CreateInventory",
+    "ModifyInventory",
+    "UpdateInventory",
+    "DeleteInventory",
+    "ViewCalculator",
+    "ViewReports",
+    "GenerateReports",
+    "ViewUsers",
+    "ModifyUsers",
+    "ApproveUsers",
+    "BanUsers",
+]
+
+ROLE_PERMISSIONS = {
+    "ADMIN": {field: True for field in ALL_PERMISSION_FIELDS},
+    "COLAB": {
+        "ViewDashboard": True,
+        "ViewFillData": True,
+        "CreateFill": True,
+        "EndFill": True,
+        "ViewCalibrations": True,
+        "CreateCalibrations": True,
+        "ModifyCalibrations": False,
+        "UpdateCalibrations": False,
+        "DeleteCalibrations": False,
+        "ViewInventory": True,
+        "CreateInventory": False,
+        "ModifyInventory": False,
+        "UpdateInventory": False,
+        "DeleteInventory": False,
+        "ViewCalculator": True,
+        "ViewReports": True,
+        "GenerateReports": False,
+        "ViewUsers": False,
+        "ModifyUsers": False,
+        "ApproveUsers": False,
+        "BanUsers": False,
+    },
+    "VISIT": {field: False for field in ALL_PERMISSION_FIELDS},
+}
+
+
+def _apply_role_permissions(permissions: Permissions, role: str) -> None:
+    """Apply permission values based on role."""
+    role_perms = ROLE_PERMISSIONS.get(role, ROLE_PERMISSIONS["VISIT"])
+    for field, value in role_perms.items():
+        setattr(permissions, field, value)
+    permissions.save()
+
 
 def _ensure_profile(user: User) -> Profile:
+    """Ensure user has a profile and permissions. Superusers get all permissions."""
     try:
         profile = user.profile
     except Profile.DoesNotExist:
         permissions = Permissions.objects.create()
         profile = Profile.objects.create(user=user, permissions=permissions)
-        return profile
 
     if profile.permissions_id is None:
         profile.permissions = Permissions.objects.create()
         profile.save(update_fields=["permissions"])
+
+    # Superusers (Django admins) get all permissions automatically
+    if user.is_superuser:
+        _apply_role_permissions(profile.permissions, "ADMIN")
+        if not profile.aprobado or profile.rol != "ADMIN":
+            profile.aprobado = True
+            profile.rol = "ADMIN"
+            profile.save(update_fields=["aprobado", "rol"])
+
     return profile
 
 
+# ============================================================================
+# AuthViewSet - Authentication endpoints (no model, uses ViewSet)
+# ============================================================================
 class AuthViewSet(viewsets.ViewSet):
+    """
+    ViewSet for authentication operations.
+    No model backing - handles register, login, refresh, logout.
+    """
+
     permission_classes = [AllowAny]
 
     @action(detail=False, methods=["post"], url_path="register")
     def register(self, request):
+        """Register a new user (pending approval)."""
         serializer = UserRegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -53,12 +133,14 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"], url_path="login")
     def login(self, request):
+        """Login and return JWT tokens."""
         serializer = ApprovalValidationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="refresh")
     def refresh(self, request):
+        """Refresh access token using refresh token."""
         serializer = TokenRefreshSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
@@ -70,6 +152,7 @@ class AuthViewSet(viewsets.ViewSet):
         permission_classes=[IsAuthenticated],
     )
     def logout(self, request):
+        """Logout by blacklisting the refresh token."""
         refresh_token = request.data.get("refresh_token")
         if not refresh_token:
             return Response(
@@ -86,64 +169,80 @@ class AuthViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        return Response(
-            {"message": "Logged out successfully."},
-            status=status.HTTP_200_OK,
-        )
+        return Response({"message": "Logged out successfully."}, status=status.HTTP_200_OK)
 
 
-class UserViewSet(viewsets.ViewSet):
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    ModelViewSet for User management.
+    Provides list, retrieve, and custom actions for user administration.
+    """
+
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+    http_method_names = ["get", "post", "head", "options"]  
 
     def get_permissions(self):
-        if self.action in {"list", "pending", "approve", "permissions", "set_role"}:
-            permission_classes = [IsAuthenticated, AllowApproveUsers]
-        else:
-            permission_classes = [IsAuthenticated]
-        return [permission() for permission in permission_classes]
+        """Admin-only actions require AllowApproveUsers permission."""
+        admin_actions = {"list", "retrieve", "pending", "approve", "permissions", "set_role"}
+        if self.action in admin_actions:
+            return [IsAuthenticated(), AllowApproveUsers()]
+        return [IsAuthenticated()]
 
-    def list(self, request):
-        users = User.objects.filter(profile__aprobado=True)
-        serializer = UserSerializer(users, many=True)
-        return Response({"total": users.count(), "users": serializer.data})
+    def get_queryset(self):
+        """Filter queryset based on action."""
+        if self.action == "list":
+            return User.objects.filter(profile__aprobado=True)
+        return User.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        """List all approved users."""
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"total": queryset.count(), "users": serializer.data})
 
     @action(detail=False, methods=["get"], url_path="pending")
     def pending(self, request):
+        """List all users pending approval."""
         users = User.objects.filter(profile__aprobado=False)
-        serializer = UserSerializer(users, many=True)
+        serializer = self.get_serializer(users, many=True)
         return Response({"total_pending": users.count(), "users": serializer.data})
 
-    @action(detail=False, methods=["get"], url_path="me")
+    @action(detail=False, methods=["get"], url_path="me", permission_classes=[IsAuthenticated])
     def me(self, request):
-        serializer = UserSerializer(request.user)
+        """Get the current authenticated user's data."""
+        _ensure_profile(request.user)
+        serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
     @action(detail=True, methods=["post"], url_path="approve")
     def approve(self, request, pk=None):
-        user = get_object_or_404(User, pk=pk)
+        """Approve a pending user."""
+        user = self.get_object()
         profile = _ensure_profile(user)
         profile.aprobado = True
         profile.save(update_fields=["aprobado"])
         return Response(
             {
                 "message": f"User {user.username} approved.",
-                "user": UserSerializer(user).data,
+                "user": self.get_serializer(user).data,
             }
         )
 
     @action(detail=True, methods=["get", "post"], url_path="permissions")
     def permissions(self, request, pk=None):
-        user = get_object_or_404(User, pk=pk)
+        """Get or update user permissions."""
+        user = self.get_object()
         profile = _ensure_profile(user)
         permissions = profile.permissions
 
         if request.method == "GET":
-            serializer = PermissionsSerializer(permissions)
             return Response(
                 {
                     "user_id": user.id,
                     "username": user.username,
-                    "permissions": serializer.data,
+                    "permissions": PermissionsSerializer(permissions).data,
                 }
             )
 
@@ -158,21 +257,21 @@ class UserViewSet(viewsets.ViewSet):
                 setattr(permissions, field, value)
 
         permissions.save()
-        serializer = PermissionsSerializer(permissions)
         return Response(
             {
                 "user_id": user.id,
                 "username": user.username,
-                "permissions": serializer.data,
+                "permissions": PermissionsSerializer(permissions).data,
             }
         )
 
     @action(detail=True, methods=["post"], url_path="role")
     def set_role(self, request, pk=None):
+        """Set user role and apply corresponding permissions."""
         role = str(request.data.get("role") or request.data.get("rol") or "").upper()
-        if role not in ("ADMIN", "COLAB", "VISIT"):
+        if role not in ROLE_PERMISSIONS:
             return Response(
-                {"error": "Invalid role."},
+                {"error": "Invalid role. Must be ADMIN, COLAB, or VISIT."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -182,36 +281,10 @@ class UserViewSet(viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        user = get_object_or_404(User, pk=pk)
+        user = self.get_object()
         profile = _ensure_profile(user)
-        permissions = profile.permissions
 
-        if role == "ADMIN":
-            permissions.ApproveUsers = True
-            permissions.ViewReports = True
-            permissions.GenerateReports = True
-            permissions.ViewDashboard = True
-            permissions.ViewCalibrations = True
-            permissions.ViewInventory = True
-            permissions.ModifyInventory = True
-        elif role == "COLAB":
-            permissions.ApproveUsers = False
-            permissions.ViewReports = True
-            permissions.GenerateReports = False
-            permissions.ViewDashboard = True
-            permissions.ViewCalibrations = True
-            permissions.ViewInventory = False
-            permissions.ModifyInventory = False
-        else:
-            permissions.ApproveUsers = False
-            permissions.ViewReports = False
-            permissions.GenerateReports = False
-            permissions.ViewDashboard = False
-            permissions.ViewCalibrations = False
-            permissions.ViewInventory = False
-            permissions.ModifyInventory = False
-
-        permissions.save()
+        _apply_role_permissions(profile.permissions, role)
         profile.rol = role
         profile.save(update_fields=["rol"])
 
@@ -219,7 +292,7 @@ class UserViewSet(viewsets.ViewSet):
             {
                 "user_id": user.id,
                 "role": profile.rol,
-                "permissions": PermissionsSerializer(permissions).data,
-                "user": UserSerializer(user).data,
+                "permissions": PermissionsSerializer(profile.permissions).data,
+                "user": self.get_serializer(user).data,
             }
         )
