@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentación Técnica - Sistema Biogestor API</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h1>📚 API Docs</h1>
+            <p>Sistema Biogestor v1.0</p>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-section">Referencia API</li>
+            <li><a href="#overview" class="active">Visión General</a></li>
+            <li><a href="#authentication">Autenticación</a></li>
+            <li><a href="#errors">Códigos de Error</a></li>
+            <li class="nav-section">Endpoints</li>
+            <li><a href="#basicparams">BasicParams</a></li>
+            <li><a href="#calculation">Calculation</a></li>
+            <li><a href="#sensors">Sensors</a></li>
+            <li><a href="#sensor-data">Sensor Data</a></li>
+            <li><a href="#fill">Fill</a></li>
+            <li><a href="#calibration">Calibration</a></li>
+            <li><a href="#inventory">Inventory</a></li>
+            <li class="nav-section">Tiempo Real</li>
+            <li><a href="#websocket">WebSocket API</a></li>
+            <li><a href="#mqtt">MQTT Protocol</a></li>
+            <li class="nav-section">Modelos</li>
+            <li><a href="#models">Esquema de Datos</a></li>
+            <li><a href="#math-model">Modelo Matemático</a></li>
+            <li class="nav-section">Infraestructura</li>
+            <li><a href="#docker">Docker</a></li>
+            <li><a href="#database">Base de Datos</a></li>
+        </ul>
+    </nav>
+
+    <main class="content">
+        <header class="page-header tech-header">
+            <h1>Documentación Técnica de la API</h1>
+            <p class="subtitle">Referencia completa para desarrolladores</p>
+            <div class="tech-badges">
+                <span class="badge">REST API</span>
+                <span class="badge">WebSocket</span>
+                <span class="badge">MQTT</span>
+                <span class="badge">JSON</span>
+            </div>
+        </header>
+
+        <!-- Overview -->
+        <section id="overview" class="section">
+            <h2>Visión General</h2>
+            
+            <h3>Base URL</h3>
+            <div class="code-block">
+                <pre><code>http://localhost:8000/api/</code></pre>
+            </div>
+
+            <h3>Formato de Respuesta</h3>
+            <p>Todas las respuestas son en formato JSON con la siguiente estructura:</p>
+            <div class="code-block">
+                <pre><code>{
+    "id": 1,
+    "field1": "value1",
+    "field2": "value2",
+    ...
+}</code></pre>
+            </div>
+
+            <h3>Métodos HTTP</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Método</th><th>Descripción</th><th>Cuerpo</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><span class="method get">GET</span></td><td>Obtener recursos</td><td>No</td></tr>
+                    <tr><td><span class="method post">POST</span></td><td>Crear recursos</td><td>Sí (JSON)</td></tr>
+                    <tr><td><span class="method put">PUT</span></td><td>Actualizar recursos</td><td>Sí (JSON)</td></tr>
+                    <tr><td><span class="method delete">DELETE</span></td><td>Eliminar recursos</td><td>No</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Headers Requeridos</h3>
+            <div class="code-block">
+                <pre><code>Content-Type: application/json
+Accept: application/json
+Authorization: Bearer &lt;token&gt;  # Para endpoints protegidos</code></pre>
+            </div>
+        </section>
+
+        <!-- Authentication -->
+        <section id="authentication" class="section">
+            <h2>Autenticación</h2>
+            <p>La API utiliza JWT (JSON Web Tokens) para autenticación.</p>
+
+            <h3>Obtener Token</h3>
+            <div class="endpoint-box">
+                <span class="method post">POST</span>
+                <code>/api/token/</code>
+            </div>
+            <h4>Request Body</h4>
+            <div class="code-block">
+                <pre><code>{
+    "username": "usuario",
+    "password": "contraseña"
+}</code></pre>
+            </div>
+            <h4>Response 200</h4>
+            <div class="code-block">
+                <pre><code>{
+    "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+    "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+}</code></pre>
+            </div>
+
+            <h3>Refrescar Token</h3>
+            <div class="endpoint-box">
+                <span class="method post">POST</span>
+                <code>/api/token/refresh/</code>
+            </div>
+            <h4>Request Body</h4>
+            <div class="code-block">
+                <pre><code>{
+    "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- Errors -->
+        <section id="errors" class="section">
+            <h2>Códigos de Error</h2>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Código</th><th>Estado</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>200</code></td><td>OK</td><td>Solicitud exitosa</td></tr>
+                    <tr><td><code>201</code></td><td>Created</td><td>Recurso creado exitosamente</td></tr>
+                    <tr><td><code>400</code></td><td>Bad Request</td><td>Parámetros inválidos o faltantes</td></tr>
+                    <tr><td><code>401</code></td><td>Unauthorized</td><td>Token inválido o expirado</td></tr>
+                    <tr><td><code>403</code></td><td>Forbidden</td><td>Sin permisos para este recurso</td></tr>
+                    <tr><td><code>404</code></td><td>Not Found</td><td>Recurso no encontrado</td></tr>
+                    <tr><td><code>500</code></td><td>Server Error</td><td>Error interno del servidor</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Formato de Error</h3>
+            <div class="code-block">
+                <pre><code>{
+    "error": "Descripción del error",
+    "detail": "Información adicional",
+    "code": "ERROR_CODE"
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- BasicParams -->
+        <section id="basicparams" class="section">
+            <h2>BasicParams</h2>
+            <p>Parámetros de materiales para el modelo de producción de biogás.</p>
+
+            <h3>Listar Parámetros</h3>
+            <div class="endpoint-box">
+                <span class="method get">GET</span>
+                <code>/api/BasicParams/</code>
+            </div>
+            <h4>Response 200</h4>
+            <div class="code-block">
+                <pre><code>[
+    {
+        "id": 1,
+        "supplyName": "Estiércol bovino",
+        "TS": 0.15,
+        "VSTS": 0.8,
+        "potencial_production": 0.3
+    },
+    {
+        "id": 2,
+        "supplyName": "Estiércol porcino",
+        "TS": 0.12,
+        "VSTS": 0.75,
+        "potencial_production": 0.35
+    }
+]</code></pre>
+            </div>
+
+            <h3>Crear Parámetro</h3>
+            <div class="endpoint-box">
+                <span class="method post">POST</span>
+                <code>/api/BasicParams/</code>
+            </div>
+            <h4>Request Body</h4>
+            <div class="code-block">
+                <pre><code>{
+    "supplyName": "Residuos vegetales",
+    "TS": 0.20,
+    "VSTS": 0.85,
+    "potencial_production": 0.25
+}</code></pre>
+            </div>
+
+            <h4>Campos</h4>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Campo</th><th>Tipo</th><th>Requerido</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>supplyName</code></td><td>string</td><td>Sí</td><td>Nombre del material (máx. 200 caracteres)</td></tr>
+                    <tr><td><code>TS</code></td><td>float</td><td>Sí</td><td>Sólidos totales (0-1)</td></tr>
+                    <tr><td><code>VSTS</code></td><td>float</td><td>Sí</td><td>Ratio sólidos volátiles/totales (0-1)</td></tr>
+                    <tr><td><code>potencial_production</code></td><td>float</td><td>Sí</td><td>Producción potencial m³/kg VS</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Obtener Parámetro</h3>
+            <div class="endpoint-box">
+                <span class="method get">GET</span>
+                <code>/api/BasicParams/{id}/</code>
+            </div>
+
+            <h3>Actualizar Parámetro</h3>
+            <div class="endpoint-box">
+                <span class="method put">PUT</span>
+                <code>/api/BasicParams/{id}/</code>
+            </div>
+
+            <h3>Eliminar Parámetro</h3>
+            <div class="endpoint-box">
+                <span class="method delete">DELETE</span>
+                <code>/api/BasicParams/{id}/</code>
+            </div>
+        </section>
+
+        <!-- Calculation -->
+        <section id="calculation" class="section">
+            <h2>Calculation</h2>
+            <p>Endpoint para ejecutar simulaciones de producción de biogás usando el modelo de Gompertz.</p>
+
+            <h3>Ejecutar Simulación</h3>
+            <div class="endpoint-box">
+                <span class="method post">POST</span>
+                <code>/api/calculation/</code>
+            </div>
+
+            <h4>Request Body</h4>
+            <div class="code-block">
+                <pre><code>{
+    "filling_mass": 100,
+    "approx_density": 1.05,
+    "added_watter": 50,
+    "type_material": "Estiércol bovino",
+    "filling_moisture": 80,
+    "delay_time": 5,
+    "temperature": 35
+}</code></pre>
+            </div>
+
+            <h4>Campos de Entrada</h4>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Campo</th><th>Tipo</th><th>Unidad</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>filling_mass</code></td><td>float</td><td>kg</td><td>Masa del material orgánico</td></tr>
+                    <tr><td><code>approx_density</code></td><td>float</td><td>kg/L</td><td>Densidad aproximada del sustrato</td></tr>
+                    <tr><td><code>added_watter</code></td><td>float</td><td>L</td><td>Agua añadida al proceso</td></tr>
+                    <tr><td><code>type_material</code></td><td>string</td><td>-</td><td>Nombre del material (debe existir en BasicParams)</td></tr>
+                    <tr><td><code>filling_moisture</code></td><td>float</td><td>%</td><td>Porcentaje de humedad del material</td></tr>
+                    <tr><td><code>delay_time</code></td><td>float</td><td>días</td><td>Tiempo de retardo (lag phase)</td></tr>
+                    <tr><td><code>temperature</code></td><td>float</td><td>°C</td><td>Temperatura del proceso</td></tr>
+                </tbody>
+            </table>
+
+            <h4>Response 200</h4>
+            <div class="code-block">
+                <pre><code>{
+    "total_solids": 20.0,
+    "total_volatile_solids": 16.0,
+    "potencial_production": 4.8,
+    "max_mu": 0.334,
+    "solvent_volume": 142.857,
+    "initial_concentration": 0.112,
+    "specific_mu": 0.167,
+    "cumulative_production": [0.001, 0.003, 0.008, 0.021, ...],
+    "derivative_production": [0.001, 0.002, 0.005, 0.013, ...]
+}</code></pre>
+            </div>
+
+            <h4>Campos de Respuesta</h4>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Campo</th><th>Tipo</th><th>Unidad</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>total_solids</code></td><td>float</td><td>kg</td><td>Sólidos totales calculados</td></tr>
+                    <tr><td><code>total_volatile_solids</code></td><td>float</td><td>kg</td><td>Sólidos volátiles totales</td></tr>
+                    <tr><td><code>potencial_production</code></td><td>float</td><td>m³</td><td>Producción potencial de biogás</td></tr>
+                    <tr><td><code>max_mu</code></td><td>float</td><td>1/día</td><td>Tasa de crecimiento máxima</td></tr>
+                    <tr><td><code>solvent_volume</code></td><td>float</td><td>L</td><td>Volumen del solvente</td></tr>
+                    <tr><td><code>initial_concentration</code></td><td>float</td><td>kg/L</td><td>Concentración inicial de sustrato</td></tr>
+                    <tr><td><code>specific_mu</code></td><td>float</td><td>1/día</td><td>Tasa de crecimiento específica</td></tr>
+                    <tr><td><code>cumulative_production</code></td><td>array[float]</td><td>m³</td><td>Producción acumulada por día</td></tr>
+                    <tr><td><code>derivative_production</code></td><td>array[float]</td><td>m³/día</td><td>Producción diaria</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Sensors -->
+        <section id="sensors" class="section">
+            <h2>Sensors</h2>
+            <p>Gestión de sensores IoT conectados al biodigestor.</p>
+
+            <h3>Listar Sensores</h3>
+            <div class="endpoint-box">
+                <span class="method get">GET</span>
+                <code>/api/sensors/</code>
+            </div>
+            <h4>Response 200</h4>
+            <div class="code-block">
+                <pre><code>[
+    {
+        "id": 1,
+        "name": "Sensor Temperatura 1",
+        "mqtt_code": "temp01",
+        "measured_variable": {
+            "id": 1,
+            "name": "Temperatura"
+        },
+        "suscription_date": "2026-01-15",
+        "min_range": 0.0,
+        "max_range": 100.0,
+        "hysteresis": 0.5,
+        "accuracy": 0.1,
+        "precision": 0.05
+    }
+]</code></pre>
+            </div>
+
+            <h3>Crear Sensor</h3>
+            <div class="endpoint-box">
+                <span class="method post">POST</span>
+                <code>/api/sensors/</code>
+            </div>
+            <h4>Request Body</h4>
+            <div class="code-block">
+                <pre><code>{
+    "name": "Sensor pH 1",
+    "mqtt_code": "ph01",
+    "measured_variable": 2,
+    "min_range": 0,
+    "max_range": 14,
+    "accuracy": 0.1,
+    "precision": 0.05
+}</code></pre>
+            </div>
+
+            <h4>Campos</h4>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Campo</th><th>Tipo</th><th>Requerido</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>name</code></td><td>string</td><td>Sí</td><td>Nombre descriptivo del sensor</td></tr>
+                    <tr><td><code>mqtt_code</code></td><td>string</td><td>Sí</td><td>Código para topic MQTT (Biogestor/{mqtt_code})</td></tr>
+                    <tr><td><code>measured_variable</code></td><td>int</td><td>Sí</td><td>ID de MeasuredVariable</td></tr>
+                    <tr><td><code>min_range</code></td><td>float</td><td>Sí</td><td>Valor mínimo de medición</td></tr>
+                    <tr><td><code>max_range</code></td><td>float</td><td>Sí</td><td>Valor máximo de medición</td></tr>
+                    <tr><td><code>hysteresis</code></td><td>float</td><td>No</td><td>Histéresis del sensor (%)</td></tr>
+                    <tr><td><code>accuracy</code></td><td>float</td><td>No</td><td>Exactitud del sensor (%)</td></tr>
+                    <tr><td><code>precision</code></td><td>float</td><td>No</td><td>Precisión del sensor (%)</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Variables Medidas</h3>
+            <div class="endpoint-box">
+                <span class="method get">GET</span>
+                <code>/api/measuredVariables/</code>
+            </div>
+            <div class="code-block">
+                <pre><code>[
+    {"id": 1, "name": "Temperatura"},
+    {"id": 2, "name": "pH"},
+    {"id": 3, "name": "Presión"}
+]</code></pre>
+            </div>
+        </section>
+
+        <!-- Sensor Data -->
+        <section id="sensor-data" class="section">
+            <h2>Sensor Data</h2>
+            <p>Lecturas y datos históricos de sensores.</p>
+
+            <h3>Listar Lecturas</h3>
+            <div class="endpoint-box">
+                <span class="method get">GET</span>
+                <code>/api/sensor-data/</code>
+            </div>
+
+            <h4>Query Parameters</h4>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Parámetro</th><th>Tipo</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>sensor</code></td><td>int</td><td>Filtrar por ID de sensor</td></tr>
+                    <tr><td><code>fill</code></td><td>int</td><td>Filtrar por ID de llenado</td></tr>
+                    <tr><td><code>date_from</code></td><td>datetime</td><td>Fecha inicial (ISO 8601)</td></tr>
+                    <tr><td><code>date_to</code></td><td>datetime</td><td>Fecha final (ISO 8601)</td></tr>
+                </tbody>
+            </table>
+
+            <h4>Response 200</h4>
+            <div class="code-block">
+                <pre><code>[
+    {
+        "id": 1,
+        "sensor": {
+            "id": 1,
+            "name": "Sensor Temperatura 1",
+            "mqtt_code": "temp01",
+            ...
+        },
+        "value": 35.5,
+        "date": "2026-01-29T10:30:00Z",
+        "fill": {
+            "id": 1,
+            ...
+        }
+    }
+]</code></pre>
+            </div>
+
+            <h3>Crear Lectura Manual</h3>
+            <div class="endpoint-box">
+                <span class="method post">POST</span>
+                <code>/api/sensor-data/</code>
+            </div>
+            <div class="code-block">
+                <pre><code>{
+    "sensor": 1,
+    "value": 36.2
+}</code></pre>
+            </div>
+            <div class="info-box">
+                <strong>Nota:</strong> Las lecturas automáticas se crean vía MQTT cada 5 segundos. Este endpoint es para registro manual.
+            </div>
+        </section>
+
+        <!-- Fill -->
+        <section id="fill" class="section">
+            <h2>Fill</h2>
+            <p>Gestión de ciclos de llenado del biodigestor.</p>
+
+            <h3>Listar Llenados</h3>
+            <div class="endpoint-box">
+                <span class="method get">GET</span>
+                <code>/api/Fill/</code>
+            </div>
+            <h4>Response 200</h4>
+            <div class="code-block">
+                <pre><code>[
+    {
+        "id": 1,
+        "first_day": "2026-01-15",
+        "last_day": null,
+        "people_involved": "Juan Pérez, María García",
+        "filling_mass": 150.0,
+        "approx_density": 1.02,
+        "added_watter": 75.0,
+        "type_material": 1,
+        "filling_moisture": 75.0,
+        "delay_time": 3.0,
+        "prediction": {
+            "id": 1,
+            "total_solids": 37.5,
+            "total_volatile_solids": 30.0,
+            "potencial_production": 9.0,
+            "cumulative_production": [...],
+            "derivative_production": [...]
+        }
+    }
+]</code></pre>
+            </div>
+
+            <h3>Crear Llenado</h3>
+            <div class="endpoint-box">
+                <span class="method post">POST</span>
+                <code>/api/Fill/</code>
+            </div>
+            <h4>Request Body</h4>
+            <div class="code-block">
+                <pre><code>{
+    "filling_mass": 150,
+    "approx_density": 1.02,
+    "added_watter": 75,
+    "type_material": 1,
+    "filling_moisture": 75,
+    "delay_time": 3,
+    "people_involved": "Juan Pérez, María García"
+}</code></pre>
+            </div>
+            <div class="info-box">
+                <strong>Importante:</strong> Al crear un Fill, se genera automáticamente una FillPrediction con la simulación de producción.
+            </div>
+
+            <h4>Campos</h4>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Campo</th><th>Tipo</th><th>Requerido</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>filling_mass</code></td><td>float</td><td>Sí</td><td>Masa del material (kg)</td></tr>
+                    <tr><td><code>approx_density</code></td><td>float</td><td>Sí</td><td>Densidad aproximada (kg/L)</td></tr>
+                    <tr><td><code>added_watter</code></td><td>float</td><td>Sí</td><td>Agua añadida (L)</td></tr>
+                    <tr><td><code>type_material</code></td><td>int</td><td>Sí</td><td>ID de BasicParams</td></tr>
+                    <tr><td><code>filling_moisture</code></td><td>float</td><td>Sí</td><td>Humedad del material (%)</td></tr>
+                    <tr><td><code>delay_time</code></td><td>float</td><td>Sí</td><td>Tiempo de retardo (días)</td></tr>
+                    <tr><td><code>people_involved</code></td><td>string</td><td>No</td><td>Personal involucrado</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Finalizar Llenado</h3>
+            <div class="endpoint-box">
+                <span class="method post">POST</span>
+                <code>/api/Fill/{id}/end_fill/</code>
+            </div>
+            <p>Marca el llenado activo como finalizado estableciendo <code>last_day</code> a la fecha actual.</p>
+            <h4>Response 200</h4>
+            <div class="code-block">
+                <pre><code>{
+    "id": 1,
+    "first_day": "2026-01-15",
+    "last_day": "2026-01-29",
+    ...
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- Calibration -->
+        <section id="calibration" class="section">
+            <h2>Calibration</h2>
+            <p>Registro de calibraciones de sensores.</p>
+
+            <h3>Listar Calibraciones</h3>
+            <div class="endpoint-box">
+                <span class="method get">GET</span>
+                <code>/api/calibration/</code>
+            </div>
+
+            <h3>Crear Calibración</h3>
+            <div class="endpoint-box">
+                <span class="method post">POST</span>
+                <code>/api/calibration/</code>
+            </div>
+            <h4>Request Body</h4>
+            <div class="code-block">
+                <pre><code>{
+    "userId": 1,
+    "sensorId": 1,
+    "params": "offset: 0.5, gain: 1.02",
+    "note": "Calibración de rutina mensual",
+    "result": "OK - Dentro de tolerancia",
+    "previous_calibration": "2025-12-01"
+}</code></pre>
+            </div>
+
+            <h4>Campos</h4>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Campo</th><th>Tipo</th><th>Requerido</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>userId</code></td><td>float</td><td>Sí</td><td>ID del usuario que calibra</td></tr>
+                    <tr><td><code>sensorId</code></td><td>float</td><td>Sí</td><td>ID del sensor calibrado</td></tr>
+                    <tr><td><code>params</code></td><td>string</td><td>Sí</td><td>Parámetros de calibración</td></tr>
+                    <tr><td><code>note</code></td><td>string</td><td>Sí</td><td>Notas adicionales</td></tr>
+                    <tr><td><code>result</code></td><td>string</td><td>Sí</td><td>Resultado de la calibración</td></tr>
+                    <tr><td><code>previous_calibration</code></td><td>date</td><td>Sí</td><td>Fecha de calibración anterior</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Inventory -->
+        <section id="inventory" class="section">
+            <h2>Inventory</h2>
+            <p>Gestión de inventario de materiales y equipos.</p>
+
+            <h3>Items</h3>
+            <div class="endpoint-box">
+                <span class="method get">GET</span>
+                <code>/api/items/</code>
+            </div>
+            <div class="endpoint-box">
+                <span class="method post">POST</span>
+                <code>/api/items/</code>
+            </div>
+            <h4>Request Body</h4>
+            <div class="code-block">
+                <pre><code>{
+    "name": "Sensor de temperatura DS18B20",
+    "quantity": 5,
+    "place": 1
+}</code></pre>
+            </div>
+
+            <h3>Places (Ubicaciones)</h3>
+            <div class="endpoint-box">
+                <span class="method get">GET</span>
+                <code>/api/place/</code>
+            </div>
+            <div class="endpoint-box">
+                <span class="method post">POST</span>
+                <code>/api/place/</code>
+            </div>
+            <div class="code-block">
+                <pre><code>{
+    "name": "Almacén de sensores"
+}</code></pre>
+            </div>
+
+            <h3>Generar Reporte PDF</h3>
+            <div class="endpoint-box">
+                <span class="method post">POST</span>
+                <code>/api/place/{id}/generate_report/</code>
+            </div>
+            <p>Genera un PDF con el inventario del área especificada.</p>
+            <h4>Response</h4>
+            <p>Retorna el archivo PDF directamente con headers:</p>
+            <div class="code-block">
+                <pre><code>Content-Type: application/pdf
+Content-Disposition: attachment; filename="reporte_inventario.pdf"</code></pre>
+            </div>
+        </section>
+
+        <!-- WebSocket -->
+        <section id="websocket" class="section">
+            <h2>WebSocket API</h2>
+            <p>Conexión en tiempo real para recibir datos de sensores.</p>
+
+            <h3>URL de Conexión</h3>
+            <div class="code-block">
+                <pre><code>ws://localhost:8000/ws/dataSensor/</code></pre>
+            </div>
+
+            <h3>Ejemplo de Conexión (JavaScript)</h3>
+            <div class="code-block">
+                <pre><code>const ws = new WebSocket('ws://localhost:8000/ws/dataSensor/');
+
+ws.onopen = () => {
+    console.log('Conectado al WebSocket');
+};
+
+ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    console.log('Datos recibidos:', data);
+    
+    // Procesar datos de cada sensor
+    Object.keys(data).forEach(topic => {
+        const values = data[topic];
+        console.log(`${topic}: último valor = ${values[values.length - 1]}`);
+    });
+};
+
+ws.onerror = (error) => {
+    console.error('Error WebSocket:', error);
+};
+
+ws.onclose = () => {
+    console.log('Conexión cerrada');
+};</code></pre>
+            </div>
+
+            <h3>Formato de Mensaje</h3>
+            <div class="code-block">
+                <pre><code>{
+    "Biogestor/temp01": ["35.2", "35.3", "35.1", "35.4", ...],
+    "Biogestor/ph01": ["7.1", "7.2", "7.1", "7.0", ...],
+    "Biogestor/pres01": ["1013.2", "1013.1", "1013.3", ...]
+}</code></pre>
+            </div>
+            <p>Cada clave es el topic MQTT del sensor. El valor es un array con las últimas 30 lecturas.</p>
+        </section>
+
+        <!-- MQTT -->
+        <section id="mqtt" class="section">
+            <h2>MQTT Protocol</h2>
+            <p>Protocolo de comunicación para sensores IoT.</p>
+
+            <h3>Configuración del Broker</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Parámetro</th><th>Valor</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Host</td><td><code>localhost</code> (o <code>mosquitto</code> en Docker)</td></tr>
+                    <tr><td>Puerto</td><td><code>1883</code></td></tr>
+                    <tr><td>Protocolo</td><td>MQTT 3.1.1</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Estructura de Topics</h3>
+            <div class="code-block">
+                <pre><code>Biogestor/{mqtt_code}</code></pre>
+            </div>
+            <p>Donde <code>{mqtt_code}</code> corresponde al campo <code>mqtt_code</code> del sensor registrado.</p>
+
+            <h4>Ejemplos de Topics</h4>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Topic</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>Biogestor/temp01</code></td><td>Sensor de temperatura 1</td></tr>
+                    <tr><td><code>Biogestor/ph01</code></td><td>Sensor de pH 1</td></tr>
+                    <tr><td><code>Biogestor/pres01</code></td><td>Sensor de presión 1</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Formato del Payload</h3>
+            <p>Los sensores deben publicar el valor numérico como string:</p>
+            <div class="code-block">
+                <pre><code># Ejemplo con mosquitto_pub
+mosquitto_pub -h localhost -p 1883 -t "Biogestor/temp01" -m "35.5"
+
+# Ejemplo con Python (paho-mqtt)
+import paho.mqtt.client as mqtt
+
+client = mqtt.Client()
+client.connect("localhost", 1883, 60)
+client.publish("Biogestor/temp01", "35.5")</code></pre>
+            </div>
+
+            <h3>Flujo de Datos</h3>
+            <div class="flow-diagram">
+                <div class="flow-step">Sensor IoT</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">MQTT Broker</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">MqttSub.py</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">Redis (30 valores)</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">WebSocket</div>
+            </div>
+            <p class="flow-note">Los datos se persisten en PostgreSQL cada 5 segundos.</p>
+        </section>
+
+        <!-- Models -->
+        <section id="models" class="section">
+            <h2>Esquema de Datos</h2>
+            <p>Estructura de modelos de la base de datos.</p>
+
+            <h3>BasicParams</h3>
+            <div class="code-block">
+                <pre><code>class BasicParams(models.Model):
+    supplyName = models.CharField(max_length=200)
+    TS = models.FloatField()              # Sólidos totales
+    VSTS = models.FloatField()            # VS/TS ratio
+    potencial_production = models.FloatField()  # m³/kg VS</code></pre>
+            </div>
+
+            <h3>Sensor</h3>
+            <div class="code-block">
+                <pre><code>class Sensor(models.Model):
+    name = models.CharField(max_length=200)
+    mqtt_code = models.CharField(max_length=20)
+    measured_variable = models.ForeignKey(MeasuredVariable, on_delete=CASCADE)
+    suscription_date = models.DateField(auto_now_add=True)
+    min_range = models.FloatField()
+    max_range = models.FloatField()
+    hysteresis = models.FloatField(null=True, blank=True)
+    accuracy = models.FloatField(null=True, blank=True)
+    precision = models.FloatField(null=True, blank=True)</code></pre>
+            </div>
+
+            <h3>Data</h3>
+            <div class="code-block">
+                <pre><code>class Data(models.Model):
+    sensor = models.ForeignKey(Sensor, on_delete=CASCADE)
+    value = models.FloatField()
+    date = models.DateTimeField(auto_now_add=True)
+    fill = models.ForeignKey(Fill, on_delete=CASCADE, null=True, blank=True)</code></pre>
+            </div>
+
+            <h3>Fill</h3>
+            <div class="code-block">
+                <pre><code>class Fill(models.Model):
+    first_day = models.DateField(auto_now_add=True)
+    last_day = models.DateField(null=True, blank=True)
+    people_involved = models.TextField(null=True, blank=True)
+    filling_mass = models.FloatField()
+    approx_density = models.FloatField()
+    added_watter = models.FloatField()
+    type_material = models.FloatField()
+    filling_moisture = models.FloatField()
+    delay_time = models.FloatField()
+    prediction = models.ForeignKey(FillPrediction, on_delete=CASCADE, null=True)</code></pre>
+            </div>
+
+            <h3>FillPrediction</h3>
+            <div class="code-block">
+                <pre><code>class FillPrediction(models.Model):
+    total_solids = models.FloatField()
+    total_volatile_solids = models.FloatField()
+    potencial_production = models.FloatField()
+    max_mu = models.FloatField()
+    solvent_volume = models.FloatField()
+    initial_concentration = models.FloatField()
+    specific_mu = models.FloatField()
+    cumulative_production = models.JSONField(default=list)
+    derivative_production = models.JSONField(default=list)</code></pre>
+            </div>
+
+            <h3>Diagrama ER</h3>
+            <div class="er-diagram">
+                <pre>
+┌─────────────────┐          ┌─────────────────┐
+│   BasicParams   │          │ MeasuredVariable│
+├─────────────────┤          ├─────────────────┤
+│ PK id           │          │ PK id           │
+│    supplyName   │          │    name         │
+│    TS           │          └────────┬────────┘
+│    VSTS         │                   │ 1
+│    potencial_   │                   │
+│    production   │                   │ N
+└─────────────────┘          ┌────────▼────────┐
+                             │     Sensor      │
+┌─────────────────┐          ├─────────────────┤
+│ FillPrediction  │          │ PK id           │
+├─────────────────┤          │    name         │
+│ PK id           │          │    mqtt_code    │
+│    total_solids │          │ FK measured_var │
+│    total_vol_   │          │    min_range    │
+│    solids       │          │    max_range    │
+│    potencial_   │          └────────┬────────┘
+│    production   │                   │ 1
+│    cumulative_  │                   │
+│    production   │                   │ N
+│    derivative_  │          ┌────────▼────────┐
+│    production   │          │      Data       │
+└────────┬────────┘          ├─────────────────┤
+         │ 1                 │ PK id           │
+         │                   │ FK sensor       │
+         │ N                 │    value        │
+┌────────▼────────┐          │    date         │
+│      Fill       │◄─────────│ FK fill         │
+├─────────────────┤   N    1 └─────────────────┘
+│ PK id           │
+│    first_day    │          ┌─────────────────┐
+│    last_day     │          │   Calibration   │
+│    filling_mass │          ├─────────────────┤
+│    type_material│          │ PK id           │
+│ FK prediction   │          │    userId       │
+└─────────────────┘          │    sensorId     │
+                             │    date         │
+┌─────────────────┐          │    params       │
+│      place      │          │    result       │
+├─────────────────┤          └─────────────────┘
+│ PK id           │
+│    name         │          ┌─────────────────┐
+└────────┬────────┘          │      items      │
+         │ 1                 ├─────────────────┤
+         │                   │ PK id           │
+         │ N                 │    name         │
+         └───────────────────│    quantity     │
+                             │ FK place        │
+                             └─────────────────┘
+                </pre>
+            </div>
+        </section>
+
+        <!-- Math Model -->
+        <section id="math-model" class="section">
+            <h2>Modelo Matemático</h2>
+            <p>Detalles del modelo de Gompertz modificado para predicción de biogás.</p>
+
+            <h3>Ecuación Principal</h3>
+            <div class="formula-box">
+                <p><strong>Y(t) = P × e<sup>-b × e<sup>-c × t</sup></sup></strong></p>
+            </div>
+
+            <h3>Variables y Parámetros</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Variable</th><th>Descripción</th><th>Unidad</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Y(t)</td><td>Producción acumulada de biogás en tiempo t</td><td>m³</td></tr>
+                    <tr><td>P</td><td>Producción potencial máxima</td><td>m³</td></tr>
+                    <tr><td>b</td><td>Factor de forma (función del lag time)</td><td>-</td></tr>
+                    <tr><td>c</td><td>Tasa de crecimiento específica</td><td>1/día</td></tr>
+                    <tr><td>t</td><td>Tiempo</td><td>días</td></tr>
+                    <tr><td>e</td><td>Constante de Euler (2.718281828)</td><td>-</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Funciones de Cálculo</h3>
+            <div class="code-block">
+                <pre><code># Sólidos totales
+def get_total_solids(basic_params, filling_mass, filling_moisture):
+    if filling_moisture != 0:
+        return filling_mass * (1 - (filling_moisture/100))
+    else:
+        return filling_mass * basic_params.TS
+
+# Sólidos volátiles
+def get_total_volatile_solids(basic_params, total_solids):
+    return total_solids * basic_params.VSTS
+
+# Producción potencial
+def get_potencial_production(basic_params, total_volatile_solids):
+    return total_volatile_solids * basic_params.potencial_production
+
+# Tasa de crecimiento máxima (dependiente de temperatura)
+def get_max_mu(temperature):
+    return (0.012 * temperature) - 0.086
+
+# Tasa específica (cinética de Monod)
+def get_specific_mu(max_mu, concentration):
+    ks = concentration
+    return max_mu * (concentration / (ks + concentration))
+
+# Producción acumulada (Gompertz)
+def get_cumulative_gompertz(specific_mu, delay_time, potencial_production, time, e):
+    c = (specific_mu * e) / potencial_production
+    b = e ** ((delay_time * c) + 1)
+    return potencial_production * e ** (-b * e ** (-c * time))
+
+# Producción diaria (derivada)
+def get_derivative_gompertz(specific_mu, delay_time, potencial_production, time, e):
+    c = (specific_mu * e) / potencial_production
+    b = e ** ((delay_time * c) + 1)
+    return potencial_production * b * c * (e ** (-c * time)) * (e ** (-b * (e ** (-c * time))))</code></pre>
+            </div>
+        </section>
+
+        <!-- Docker -->
+        <section id="docker" class="section">
+            <h2>Docker</h2>
+            <p>Configuración de contenedores para el sistema.</p>
+
+            <h3>Servicios</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Servicio</th><th>Imagen</th><th>Puerto</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>backend</td><td>Custom (Dockerfile)</td><td>8000</td><td>Django + Daphne ASGI</td></tr>
+                    <tr><td>db</td><td>postgres:16</td><td>5432</td><td>PostgreSQL</td></tr>
+                    <tr><td>redis</td><td>redis:7-alpine</td><td>6379</td><td>Cache y Channel Layer</td></tr>
+                    <tr><td>mosquitto</td><td>eclipse-mosquitto:2</td><td>1883</td><td>MQTT Broker</td></tr>
+                    <tr><td>nginx</td><td>nginx:latest</td><td>8080</td><td>Proxy reverso</td></tr>
+                    <tr><td>mqtt_subscriber</td><td>Custom (Dockerfile)</td><td>-</td><td>Suscriptor MQTT</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Comandos Útiles</h3>
+            <div class="code-block">
+                <pre><code># Levantar todos los servicios
+docker-compose up -d
+
+# Ver logs del backend
+docker-compose logs -f backend
+
+# Ejecutar migraciones
+docker-compose exec backend python manage.py migrate
+
+# Crear superusuario
+docker-compose exec backend python manage.py createsuperuser
+
+# Reiniciar servicio específico
+docker-compose restart backend
+
+# Detener todos los servicios
+docker-compose down
+
+# Eliminar volúmenes (¡cuidado! borra datos)
+docker-compose down -v</code></pre>
+            </div>
+        </section>
+
+        <!-- Database -->
+        <section id="database" class="section">
+            <h2>Base de Datos</h2>
+            <p>Configuración y mantenimiento de PostgreSQL.</p>
+
+            <h3>Conexión</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Parámetro</th><th>Valor</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Host</td><td><code>db</code> (en Docker) / <code>localhost</code></td></tr>
+                    <tr><td>Puerto</td><td><code>5432</code></td></tr>
+                    <tr><td>Base de datos</td><td><code>appdb</code></td></tr>
+                    <tr><td>Usuario</td><td><code>postgres</code></td></tr>
+                    <tr><td>Contraseña</td><td><code>postgres</code></td></tr>
+                </tbody>
+            </table>
+
+            <h3>Migraciones</h3>
+            <div class="code-block">
+                <pre><code># Crear migraciones
+python manage.py makemigrations
+
+# Aplicar migraciones
+python manage.py migrate
+
+# Ver migraciones pendientes
+python manage.py showmigrations
+
+# Revertir migración
+python manage.py migrate app_name migration_name</code></pre>
+            </div>
+
+            <h3>Backup y Restauración</h3>
+            <div class="code-block">
+                <pre><code># Backup
+docker-compose exec db pg_dump -U postgres appdb > backup.sql
+
+# Restauración
+docker-compose exec -T db psql -U postgres appdb < backup.sql</code></pre>
+            </div>
+        </section>
+
+        <footer class="page-footer">
+            <p>Documentación Técnica - Sistema Biogestor API v1.0</p>
+            <p>Última actualización: 29 de enero de 2026</p>
+        </footer>
+    </main>
+
+    <script>
+        // Smooth scrolling
+        document.querySelectorAll('.nav-menu a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const target = document.querySelector(targetId);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+                document.querySelectorAll('.nav-menu a').forEach(a => a.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Highlight current section
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('.section');
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (window.pageYOffset >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+            document.querySelectorAll('.nav-menu a').forEach(a => {
+                a.classList.remove('active');
+                if (a.getAttribute('href') === `#${current}`) {
+                    a.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

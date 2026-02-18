@@ -1,22 +1,13 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import (
-    ProductoViewSet,
-    InsumoViewSet,
-    CrearProductoConInsumosView,
-    obtener_insumos
-)
+from .views import itemsViewSet, placesViewSet
 
 router = DefaultRouter()
-router.register(r'productos', ProductoViewSet)
-router.register(r'insumos', InsumoViewSet)
+
+router.register(r'items', itemsViewSet, basename='items')
+router.register(r'place', placesViewSet, basename='place')
+
 
 urlpatterns = [
-
-    # endpoints extra:
-    path('productos/crear_con_insumos/',
-         CrearProductoConInsumosView.as_view(), name='crear-producto-insumos'),
-    path('producto-insumos/', obtener_insumos, name='obtener-insumos'),
-
-    path('', include(router.urls)),  # Cruds automaticos
+    path('',include(router.urls)),
 ]

@@ -1,4 +1,98 @@
+# ============================================
+#  PYTHON / DJANGO
+# ============================================
 
-.venv
+# Entornos virtuales
+venv/
+env/
+.env/
+.venv/
 
-__pycache__
+# Archivos de configuración sensibles
+*.env
+*.env.local
+*.env.dev
+*.env.prod
+
+# Bytecode y cachés
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache
+
+# Archivos temporales
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos de bases de datos locales
+db.sqlite3
+*.db
+
+# Archivos de compilación / cobertura
+*.cover
+*.coverage
+*.tox
+.coverage
+nosetests.xml
+coverage.xml
+*.mo
+
+# Archivos generados por Django
+/staticfiles/
+media/
+*.pid
+
+
+# ============================================
+# DOCKER
+# ============================================
+
+# Volúmenes persistentes locales
+volumes/
+postgres_data/
+*/postgres_data/
+
+# Archivos de build locales
+*.pid
+*.tar
+*.bak
+*.old
+*.orig
+
+# Docker Compose override local
+docker-compose.override.yml
+
+# ============================================
+# IDEs / SISTEMA
+# ============================================
+
+# VSCode
+.vscode/
+.history/
+.idea/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# ============================================
+# ESTS / TEMP
+# ============================================
+
+# Carpeta de pytest / coverage
+htmlcov/
+.cache/
+pytest_cache/
+
+# Archivos temporales y backups
+*.swp
+*.swo
+*.bak
+*.tmp
+*.temp

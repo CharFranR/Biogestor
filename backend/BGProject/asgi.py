@@ -10,13 +10,13 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'BGProject.settings')
 django_asgi_app = get_asgi_application()
 
 # Now it's safe to import modules that may import models
-from dashboard import routing as dashboard_routing
+from dataSensor import routing as dataSensor_routing
 
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
     "websocket": AuthMiddlewareStack(
         URLRouter(
-            dashboard_routing.websocket_urlpatterns
+            dataSensor_routing.websocket_urlpatterns
         )
     ),
 })

@@ -1,5 +1,4 @@
-python-dotenv
-Django
+django
 psycopg2-binary
 pandas
 djangorestframework
@@ -10,5 +9,13 @@ channels
 daphne
 paho-mqtt
 openpyxl
-google-auth
 reportlab
+redis
+django-redis
+channels_redis
+numpy
+pandas
+matplotlib
+pytest
+pytest-django
+requests

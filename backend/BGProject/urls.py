@@ -19,13 +19,13 @@ def healthz(_request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('usuarios.urls')),
-    path('',include('inventario.urls')),
-    path('',include('recursos.urls')),
-    path('', include('biocalculadora.urls')),
-    path('api/dashboard/', include('dashboard.urls')),
-    path('healthz', healthz),
-]
+    path('api/', include('authentication.urls')),
+    path('api/',include('inventario.urls')),
+    path('api/', include('BatchModel.urls')),
+    path('api/', include('calibrations.urls')),
+    path('api/', include('dataSensor.urls')),
+    path('api/', include('Fill.urls')),
+]   
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
