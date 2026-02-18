@@ -62,8 +62,6 @@ services:
   frontend:
     build:
       context: ./frontend/nextjs-app
-    ports:
-      - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_URL=http://backend:8000
       - NEXT_PUBLIC_WS_URL=ws://backend:8000
