@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { FiWifi, FiWifiOff, FiRefreshCw, FiMaximize2, FiPlus } from "react-icons/fi";
+import { AxiosError } from "axios";
 import { useSensorData } from "@/hooks/useSensorData";
 import { SensorChart } from "@/components/SensorChart";
 import { Card, Button, Modal, Input, Select } from "@/components/ui";
@@ -50,11 +51,35 @@ export default function SensoresPage() {
   const createVariableMutation = useCreateMeasuredVariable();
   const [formError, setFormError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!isCreateModalOpen) return;
+    if (!measuredVariables || measuredVariables.length === 0) return;
+
+    const currentId = Number(sensorForm.measured_variable);
+    const currentExists = measuredVariables.some((variable) => variable.id === currentId);
+
+    if (!currentExists) {
+      setSensorForm((prev) => ({
+        ...prev,
+        measured_variable: measuredVariables[0].id,
+      }));
+    }
+  }, [isCreateModalOpen, measuredVariables, sensorForm.measured_variable]);
+
   const handleCreateSensor = async () => {
     setFormError(null);
     
     if (!sensorForm.name || !sensorForm.mqtt_code || !sensorForm.measured_variable) {
       setFormError("Por favor complete todos los campos requeridos");
+      return;
+    }
+
+    const measuredVariableExists = measuredVariables?.some(
+      (variable) => variable.id === Number(sensorForm.measured_variable)
+    );
+
+    if (!measuredVariableExists) {
+      setFormError("La variable medida seleccionada no es válida.");
       return;
     }
 
@@ -66,6 +91,19 @@ export default function SensoresPage() {
       refetchSensors();
     } catch (error) {
       console.error("Error al crear sensor:", error);
+      const axiosError = error as AxiosError<Record<string, string[] | string>>;
+      const responseData = axiosError.response?.data;
+
+      if (responseData && typeof responseData === "object") {
+        const firstEntry = Object.entries(responseData)[0];
+        if (firstEntry) {
+          const [field, message] = firstEntry;
+          const parsedMessage = Array.isArray(message) ? message[0] : message;
+          setFormError(`${field}: ${parsedMessage}`);
+          return;
+        }
+      }
+
       setFormError("Error al crear el sensor. Verifique los datos e intente de nuevo.");
     }
   };

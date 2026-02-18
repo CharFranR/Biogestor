@@ -28,9 +28,23 @@ async function fetchSensor(id: number): Promise<Sensor> {
 async function createSensor(data: SensorCreateData): Promise<Sensor> {
   // El backend espera measured_variable_id para ForeignKey
   const { measured_variable, ...rest } = data;
+  const measuredVariableId = Number(measured_variable);
+
+  if (!Number.isFinite(measuredVariableId) || measuredVariableId <= 0) {
+    throw new Error("Debes seleccionar una variable medida válida.");
+  }
+
+  const optionalNumber = (value?: number | null) =>
+    value === null || value === undefined || Number.isNaN(value)
+      ? undefined
+      : value;
+
   const payload = {
     ...rest,
-    measured_variable_id: measured_variable,
+    measured_variable_id: measuredVariableId,
+    hysteresis: optionalNumber(rest.hysteresis),
+    accuracy: optionalNumber(rest.accuracy),
+    precision: optionalNumber(rest.precision),
   };
   const response = await apiClient.post<Sensor>("/api/sensors/", payload);
   return response.data;
