@@ -69,7 +69,12 @@ export default function InventarioPage() {
     {
       key: "quantity",
       header: "Cantidad",
-      render: (item: Item) => `${item.quantity} ${item.measurement || item.unit || ""}`,
+      render: (item: Item) => item.quantity,
+    },
+    {
+      key: "measurement",
+      header: "Unidad",
+      render: (item: Item) => item.measurement || item.unit || "-",
     },
     {
       key: "place",
@@ -82,37 +87,11 @@ export default function InventarioPage() {
     {
       key: "description",
       header: "Descripción",
-      render: (item: Item) =>
-        item.description?.substring(0, 50) || "-",
-    },
-    {
-      key: "actions",
-      header: "Acciones",
-      render: (item: Item) => (
-        <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              setEditingItem(item);
-              setIsItemModalOpen(true);
-            }}
-            leftIcon={<FiEdit2 className="w-4 h-4" />}
-            className="w-full sm:w-auto"
-          >
-            <span className="hidden sm:inline">Editar</span>
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setDeleteItemConfirm(item.id)}
-            leftIcon={<FiTrash2 className="w-4 h-4 text-red-500" />}
-            className="w-full sm:w-auto"
-            aria-label="Eliminar item"
-            title="Eliminar"
-          />
-        </div>
-      ),
+      render: (item: Item) => {
+        const descriptionText =
+          typeof item.description === "string" ? item.description.trim() : "";
+        return descriptionText.length > 0 ? descriptionText : "-";
+      },
     },
   ];
 

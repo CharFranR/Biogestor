@@ -8,13 +8,21 @@ const PLACES_KEY = "places";
 type ApiItem = Omit<Item, "measurement"> & {
   measurement?: string;
   unit?: string;
+  description?: string | null;
+  descripcion?: string | null;
+  detail?: string | null;
+  details?: string | null;
 };
 
 function normalizeItem(item: ApiItem): Item {
   const measurement = item.measurement || item.unit || "";
+  const normalizedDescription =
+    item.description ?? item.descripcion ?? item.detail ?? item.details ?? null;
+
   return {
     ...item,
     measurement,
+    description: normalizedDescription,
   };
 }
 
