@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
-import type { RealProductionData, RealProductionSummary } from "@/types";
+import type { RealProductionData, RealProductionSummary, SensorData } from "@/types";
 
 const PRODUCTION_KEY = "realProduction";
 
@@ -8,29 +8,55 @@ const PRODUCTION_KEY = "realProduction";
 // API Functions
 // ============================================
 
+function mapSensorDataToRealProduction(
+  fillId: number,
+  sensorData: SensorData[]
+): RealProductionData[] {
+  const sorted = [...sensorData].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+
+  let cumulative = 0;
+  return sorted.map((entry, index) => {
+    const dailyProduction = Number(entry.value) || 0;
+    cumulative += dailyProduction;
+
+    return {
+      id: entry.id ?? index + 1,
+      fill: fillId,
+      date: entry.date,
+      daily_production: dailyProduction,
+      cumulative_production: cumulative,
+    };
+  });
+}
+
 /**
  * Fetch real production data for a specific fill
- * TODO: Update endpoint when backend is implemented
- * Expected endpoint: GET /api/production/by-fill/{fillId}/
+ * Backend actual: GET /api/sensor-data/?fill={fillId}
  */
 async function fetchRealProductionByFill(fillId: number): Promise<RealProductionData[]> {
-  const response = await apiClient.get<RealProductionData[]>(
-    `/api/production/by-fill/${fillId}/`
+  const response = await apiClient.get<SensorData[]>(
+    `/api/sensor-data/?fill=${fillId}`
   );
-  return response.data;
+  return mapSensorDataToRealProduction(fillId, response.data);
 }
 
 /**
  * Fetch aggregated production summary for a fill
- * This provides pre-calculated arrays ready for charting
- * TODO: Update endpoint when backend is implemented
- * Expected endpoint: GET /api/production/summary/{fillId}/
+ * Se calcula en frontend desde /api/sensor-data/?fill={fillId}
  */
 async function fetchProductionSummary(fillId: number): Promise<RealProductionSummary> {
-  const response = await apiClient.get<RealProductionSummary>(
-    `/api/production/summary/${fillId}/`
+  const rawData = await fetchRealProductionByFill(fillId);
+  return (
+    processProductionData(rawData) || {
+      fill_id: fillId,
+      dates: [],
+      daily_values: [],
+      cumulative_values: [],
+      total_production: 0,
+    }
   );
-  return response.data;
 }
 
 // ============================================
