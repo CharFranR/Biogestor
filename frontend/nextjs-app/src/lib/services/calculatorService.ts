@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import type {
   BasicParams,
@@ -62,8 +62,13 @@ export function useBasicParam(id: number) {
 }
 
 export function useCreateBasicParams() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: createBasicParams,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [BASIC_PARAMS_KEY] });
+    },
   });
 }
 

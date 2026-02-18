@@ -12,6 +12,7 @@ import {
   FiActivity,
   FiThermometer,
   FiEye,
+  FiPlusCircle,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 import { PermissionGuard } from "@/components/PermissionGuard";
@@ -38,6 +39,7 @@ import {
   Select,
   Textarea,
 } from "@/components/ui";
+import { BasicParamsQuickCreateModal } from "@/components/BasicParamsQuickCreateModal";
 import {
   useFills,
   useCreateFill,
@@ -614,10 +616,13 @@ function FillFormModal({
   onUpdate,
   isSubmitting,
 }: FillFormModalProps) {
+  const [isMaterialModalOpen, setIsMaterialModalOpen] = useState(false);
+
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<FillCreateData>({
     defaultValues: fill
@@ -712,18 +717,34 @@ function FillFormModal({
             })}
           />
 
-          <Select
-            label="Tipo de Material"
-            options={materials.map((m) => ({
-              value: m.id,
-              label: m.supplyName,
-            }))}
-            error={errors.type_material?.message}
-            {...register("type_material", {
-              required: "El material es requerido",
-              valueAsNumber: true,
-            })}
-          />
+          <div className="sm:col-span-2">
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <Select
+                  label="Tipo de Material"
+                  options={materials.map((m) => ({
+                    value: m.id,
+                    label: m.supplyName,
+                  }))}
+                  error={errors.type_material?.message}
+                  {...register("type_material", {
+                    required: "El material es requerido",
+                    valueAsNumber: true,
+                  })}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsMaterialModalOpen(true)}
+                leftIcon={<FiPlusCircle className="w-4 h-4" />}
+                className="mb-0.5"
+                title="Agregar nuevo material"
+              >
+                <span className="hidden sm:inline">Nuevo</span>
+              </Button>
+            </div>
+          </div>
 
           <Input
             label="Humedad del Llenado (%)"
@@ -758,6 +779,14 @@ function FillFormModal({
           {...register("people_involved")}
         />
       </form>
+
+      <BasicParamsQuickCreateModal
+        isOpen={isMaterialModalOpen}
+        onClose={() => setIsMaterialModalOpen(false)}
+        onCreated={(material) => {
+          setValue("type_material", material.id, { shouldValidate: true });
+        }}
+      />
     </Modal>
   );
 }

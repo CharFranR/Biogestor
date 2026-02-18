@@ -8,6 +8,7 @@ import {
   FiInfo,
   FiTrendingUp,
   FiBarChart2,
+  FiPlus,
 } from "react-icons/fi";
 import { Line } from "react-chartjs-2";
 import {
@@ -23,6 +24,7 @@ import {
 } from "chart.js";
 import toast from "react-hot-toast";
 import { Card, Button, Input, Select, StatCard } from "@/components/ui";
+import { BasicParamsQuickCreateModal } from "@/components/BasicParamsQuickCreateModal";
 import { PermissionGuard } from "@/components/PermissionGuard";
 import {
   useBasicParams,
@@ -46,6 +48,7 @@ export default function CalculadoraPage() {
   const runCalculation = useRunCalculation();
 
   const [result, setResult] = useState<CalculationResult | null>(null);
+  const [isMaterialModalOpen, setIsMaterialModalOpen] = useState(false);
 
   // Debug: Log materials
   console.log("Materials:", materials, "Loading:", loadingMaterials, "Error:", materialsError);
@@ -83,7 +86,7 @@ export default function CalculadoraPage() {
   };
 
   const handleMaterialChange = (materialId: number) => {
-    setValue("type_material", materialId);
+    setValue("type_material", materialId, { shouldValidate: true });
     const material = materials.find((m) => m.id === materialId);
     if (material) {
       toast.success(`Material seleccionado: ${material.supplyName}`);
@@ -141,18 +144,32 @@ export default function CalculadoraPage() {
         <div className="lg:col-span-1 space-y-6">
           <Card title="Parámetros de Entrada" icon={<FiInfo className="w-5 h-5" />}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <Select
-                label="Material"
-                options={materials.map((m) => ({
-                  value: m.id,
-                  label: `${m.supplyName} (TS: ${m.TS}%)`,
-                }))}
-                placeholder={loadingMaterials ? "Cargando materiales..." : "Seleccione un material"}
-                error={errors.type_material?.message}
-                value={selectedMaterialId || ""}
-                onChange={(e) => handleMaterialChange(Number(e.target.value))}
-                disabled={loadingMaterials}
-              />
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <Select
+                    label="Material"
+                    options={materials.map((m) => ({
+                      value: m.id,
+                      label: `${m.supplyName} (TS: ${m.TS}%)`,
+                    }))}
+                    placeholder={loadingMaterials ? "Cargando materiales..." : "Seleccione un material"}
+                    error={errors.type_material?.message}
+                    value={selectedMaterialId || ""}
+                    onChange={(e) => handleMaterialChange(Number(e.target.value))}
+                    disabled={loadingMaterials}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsMaterialModalOpen(true)}
+                  leftIcon={<FiPlus className="w-4 h-4" />}
+                  className="mb-0.5"
+                  title="Agregar nuevo material"
+                >
+                  <span className="hidden sm:inline">Nuevo</span>
+                </Button>
+              </div>
 
               {selectedMaterial && (
                 <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1 text-gray-900">
@@ -380,6 +397,14 @@ export default function CalculadoraPage() {
         </div>
       </Card>
     </div>
+
+    <BasicParamsQuickCreateModal
+      isOpen={isMaterialModalOpen}
+      onClose={() => setIsMaterialModalOpen(false)}
+      onCreated={(material) => {
+        setValue("type_material", material.id, { shouldValidate: true });
+      }}
+    />
     </PermissionGuard>
   );
 }
