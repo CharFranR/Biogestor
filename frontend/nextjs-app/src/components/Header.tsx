@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { FiLogOut, FiUser, FiChevronDown } from "react-icons/fi";
+import { FiLogOut, FiUser, FiChevronDown, FiMenu } from "react-icons/fi";
 import { authService } from "@/lib/auth";
 import { clsx, getInitials } from "@/lib/utils";
 import type { User } from "@/types";
@@ -17,7 +17,11 @@ const pageTitles: Record<string, string> = {
   "/perfil": "Mi Perfil",
 };
 
-export function Header() {
+interface HeaderProps {
+  onMenuClick?: () => void;
+}
+
+export function Header({ onMenuClick }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
@@ -50,17 +54,26 @@ export function Header() {
   const pageTitle = pageTitles[pathname] || "Dashboard";
 
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-20">
+    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-20">
       {/* Page Title */}
-      <div>
-        <h1 className="text-xl font-semibold text-gray-900">{pageTitle}</h1>
+      <div className="flex items-center gap-3 min-w-0">
+        <button
+          onClick={onMenuClick}
+          className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 lg:hidden"
+          aria-label="Abrir menú"
+        >
+          <FiMenu className="w-5 h-5" />
+        </button>
+        <h1 className="text-base sm:text-xl font-semibold text-gray-900 truncate">
+          {pageTitle}
+        </h1>
       </div>
 
       {/* User Menu */}
       <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg hover:bg-gray-100 transition-colors"
         >
           <div className="w-9 h-9 bg-primary-400 rounded-full flex items-center justify-center text-white font-medium">
             {getInitials(user?.first_name, user?.last_name)}

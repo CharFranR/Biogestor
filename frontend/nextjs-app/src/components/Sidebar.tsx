@@ -14,6 +14,7 @@ import {
   FiUser,
   FiChevronLeft,
   FiChevronRight,
+  FiX,
 } from "react-icons/fi";
 import { authService } from "@/lib/auth";
 import type { User } from "@/types";
@@ -69,9 +70,20 @@ const navItems: NavItem[] = [
   },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
+  isMobileOpen: boolean;
+  onCloseMobile: () => void;
+}
+
+export function Sidebar({
+  isCollapsed,
+  onToggleCollapse,
+  isMobileOpen,
+  onCloseMobile,
+}: SidebarProps) {
   const pathname = usePathname();
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -96,14 +108,31 @@ export function Sidebar() {
   const filteredNavItems = navItems.filter((item) => hasPermission(item.permission));
 
   return (
-    <aside
-      className={clsx(
-        "fixed left-0 top-0 h-full bg-sidebar-bg text-white transition-all duration-300 z-30",
-        isCollapsed ? "w-20" : "w-64"
+    <>
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-30 lg:hidden"
+          onClick={onCloseMobile}
+        />
       )}
-    >
+
+      <aside
+        className={clsx(
+          "fixed left-0 top-0 h-full bg-sidebar-bg text-white transition-all duration-300 z-40",
+          "w-64 lg:translate-x-0",
+          isCollapsed && "lg:w-20",
+          isMobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
       {/* Logo */}
-      <div className="flex items-center justify-center h-16 border-b border-white/10">
+      <div className="relative flex items-center justify-center h-16 border-b border-white/10 px-3">
+        <button
+          onClick={onCloseMobile}
+          className="absolute right-3 p-2 rounded-lg text-gray-300 hover:text-white hover:bg-sidebar-hover lg:hidden"
+          aria-label="Cerrar menú"
+        >
+          <FiX className="w-5 h-5" />
+        </button>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-primary-400 rounded-lg flex items-center justify-center">
             <FiActivity className="w-6 h-6" />
@@ -115,7 +144,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="mt-6 px-3">
+      <nav className="mt-6 px-3 pb-20 h-[calc(100%-4rem)] overflow-y-auto">
         <ul className="space-y-1">
           {filteredNavItems.map((item) => {
             const isActive = pathname === item.href;
@@ -123,6 +152,7 @@ export function Sidebar() {
               <li key={item.href}>
                 <Link
                   href={item.href}
+                  onClick={onCloseMobile}
                   className={clsx(
                     "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
                     isActive
@@ -138,7 +168,7 @@ export function Sidebar() {
                   >
                     {item.icon}
                   </span>
-                  {!isCollapsed && (
+                  {(!isCollapsed || isMobileOpen) && (
                     <span className="font-medium">{item.name}</span>
                   )}
                 </Link>
@@ -150,8 +180,9 @@ export function Sidebar() {
 
       {/* Collapse Button */}
       <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute bottom-6 left-1/2 transform -translate-x-1/2 p-2 bg-sidebar-hover rounded-lg text-gray-300 hover:text-white hover:bg-sidebar-active transition-colors"
+        onClick={onToggleCollapse}
+        className="hidden lg:block absolute bottom-6 left-1/2 transform -translate-x-1/2 p-2 bg-sidebar-hover rounded-lg text-gray-300 hover:text-white hover:bg-sidebar-active transition-colors"
+        aria-label={isCollapsed ? "Expandir menú" : "Colapsar menú"}
       >
         {isCollapsed ? (
           <FiChevronRight className="w-5 h-5" />
@@ -159,6 +190,7 @@ export function Sidebar() {
           <FiChevronLeft className="w-5 h-5" />
         )}
       </button>
-    </aside>
+      </aside>
+    </>
   );
 }
